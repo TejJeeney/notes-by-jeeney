@@ -1,94 +1,40 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { NoteEditor } from "@/components/NoteEditor";
-import { Welcome } from "@/components/Welcome";
-
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { useAuth } from "@/hooks/useAuth";
+import { ModernAppSidebar } from "@/components/ModernAppSidebar";
+import { ModernNotesView } from "@/components/ModernNotesView";
 
 const Index = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  // Load notes from localStorage on mount
   useEffect(() => {
-    const savedNotes = localStorage.getItem('notes');
-    if (savedNotes) {
-      const parsedNotes = JSON.parse(savedNotes).map((note: any) => ({
-        ...note,
-        createdAt: new Date(note.createdAt),
-        updatedAt: new Date(note.updatedAt),
-      }));
-      setNotes(parsedNotes);
+    if (!loading && !user) {
+      navigate('/auth');
     }
-  }, []);
+  }, [user, loading, navigate]);
 
-  // Save notes to localStorage whenever notes change
-  useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(notes));
-  }, [notes]);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
-  const createNote = () => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: 'Untitled Note',
-      content: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setNotes(prev => [newNote, ...prev]);
-    setSelectedNote(newNote);
-  };
-
-  const updateNote = (updatedNote: Note) => {
-    setNotes(prev => prev.map(note => 
-      note.id === updatedNote.id ? { ...updatedNote, updatedAt: new Date() } : note
-    ));
-    setSelectedNote(updatedNote);
-  };
-
-  const deleteNote = (noteId: string) => {
-    setNotes(prev => prev.filter(note => note.id !== noteId));
-    if (selectedNote?.id === noteId) {
-      setSelectedNote(null);
-    }
-  };
-
-  const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  if (!user) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300">
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
-          <AppSidebar 
-            notes={filteredNotes}
-            selectedNote={selectedNote}
-            onSelectNote={setSelectedNote}
-            onCreateNote={createNote}
-            onDeleteNote={deleteNote}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+          <ModernAppSidebar />
           <main className="flex-1 overflow-hidden">
-            {selectedNote ? (
-              <NoteEditor 
-                note={selectedNote}
-                onUpdateNote={updateNote}
-              />
-            ) : (
-              <Welcome onCreateNote={createNote} />
-            )}
+            <ModernNotesView />
           </main>
         </div>
       </SidebarProvider>
