@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TagInput } from './TagInput';
-import { Calendar, Clock, Pin, PinOff, Save } from 'lucide-react';
+import { DrawingCanvas } from './DrawingCanvas';
+import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, FileImage } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ModernNoteEditorProps {
   note: Note;
@@ -19,12 +22,16 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   const [content, setContent] = useState(note.content);
   const [tags, setTags] = useState(note.tags);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showDrawing, setShowDrawing] = useState(false);
+  const [summary, setSummary] = useState<string>('');
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
     setTags(note.tags);
     setHasChanges(false);
+    setSummary('');
   }, [note]);
 
   useEffect(() => {
@@ -39,6 +46,38 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
     setHasChanges(false);
   };
 
+  const generateSummary = async () => {
+    if (!content && !title) {
+      toast.error('Please add some content to summarize');
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-summary', {
+        body: { content, title }
+      });
+
+      if (error) throw error;
+
+      setSummary(data.summary);
+      toast.success('Summary generated!');
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error('Failed to generate summary. Please check if OpenAI API key is configured.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleSaveDrawing = (imageData: string, drawingTitle: string) => {
+    const imageTag = `![Drawing](${imageData})`;
+    const newContent = content + '\n\n' + imageTag;
+    setContent(newContent);
+    setShowDrawing(false);
+    toast.success('Drawing added to note!');
+  };
+
   const formatDateTime = (date: string) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'long',
@@ -48,6 +87,15 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
       minute: '2-digit',
     }).format(new Date(date));
   };
+
+  if (showDrawing) {
+    return (
+      <DrawingCanvas
+        onSave={handleSaveDrawing}
+        onClose={() => setShowDrawing(false)}
+      />
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
@@ -71,6 +119,29 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
               </Button>
             )}
             <Button
+              onClick={() => setShowDrawing(true)}
+              variant="outline"
+              size="sm"
+              className="transition-all duration-200 hover:scale-110"
+            >
+              <Brush className="w-4 h-4 mr-1" />
+              Draw
+            </Button>
+            <Button
+              onClick={generateSummary}
+              disabled={isGeneratingSummary}
+              variant="outline"
+              size="sm"
+              className="transition-all duration-200 hover:scale-110"
+            >
+              {isGeneratingSummary ? (
+                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-1" />
+              )}
+              {isGeneratingSummary ? 'Generating...' : 'AI Summary'}
+            </Button>
+            <Button
               onClick={() => onTogglePin(note.id)}
               variant="ghost"
               size="sm"
@@ -84,6 +155,16 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
             </Button>
           </div>
         </div>
+        
+        {summary && (
+          <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="font-semibold text-indigo-800 dark:text-indigo-200">AI Summary</span>
+            </div>
+            <p className="text-indigo-700 dark:text-indigo-300 text-sm leading-relaxed">{summary}</p>
+          </div>
+        )}
         
         <div className="mb-4">
           <TagInput 
@@ -115,7 +196,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Start writing your note..."
+          placeholder="Start writing your note... Click 'Draw' to add sketches or diagrams!"
           className="w-full h-full min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
         />
       </div>

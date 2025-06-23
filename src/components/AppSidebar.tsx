@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Note } from "@/pages/Index";
+import { Note } from "@/hooks/useNotes";
 import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
@@ -119,7 +119,7 @@ export function AppSidebar({
                           {note.content.slice(0, 50) || 'No content'}
                         </p>
                         <p className="text-xs text-slate-400 mt-1">
-                          {formatDate(note.updatedAt)}
+                          {formatDate(new Date(note.updated_at))}
                         </p>
                       </div>
                     </SidebarMenuButton>

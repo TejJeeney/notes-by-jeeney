@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Note } from "@/pages/Index";
+import { Note } from "@/hooks/useNotes";
 import { Calendar, Clock } from 'lucide-react';
 
 interface NoteEditorProps {
@@ -29,14 +29,14 @@ export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
     onUpdateNote({ ...note, content: newContent });
   };
 
-  const formatDateTime = (date: Date) => {
+  const formatDateTime = (date: string) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+    }).format(new Date(date));
   };
 
   return (
@@ -52,11 +52,11 @@ export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
         <div className="flex items-center gap-6 mt-4 text-sm text-slate-500">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            <span>Created: {formatDateTime(note.createdAt)}</span>
+            <span>Created: {formatDateTime(note.created_at)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            <span>Updated: {formatDateTime(note.updatedAt)}</span>
+            <span>Updated: {formatDateTime(note.updated_at)}</span>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Plus, LogOut, Settings, Download, Upload, Filter } from 'lucide-react';
+import { Search, Plus, LogOut, Settings, Download, Upload, Filter, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
@@ -19,7 +19,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
   const [searchQuery, setSearchQuery] = useState('');
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const { signOut } = useAuth();
-  const { notes, createNote, searchNotes, exportNotes, importNotes } = useNotes();
+  const { notes, createNote, deleteNote, searchNotes, exportNotes, importNotes } = useNotes();
 
   const filteredNotes = searchNotes(searchQuery).filter(note => 
     showPinnedOnly ? note.is_pinned : true
@@ -29,6 +29,16 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
     const newNote = await createNote();
     if (newNote && onSelectNote) {
       onSelectNote(newNote);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (confirm('Are you sure you want to delete this note?')) {
+      await deleteNote(noteId);
+      if (selectedNote?.id === noteId && onSelectNote) {
+        onSelectNote(null);
+      }
     }
   };
 
@@ -107,7 +117,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
             <div
               key={note.id}
               onClick={() => onSelectNote?.(note)}
-              className={`p-4 rounded-lg cursor-pointer transition-all duration-200 hover:scale-102 border ${
+              className={`p-4 rounded-lg cursor-pointer transition-all duration-200 hover:scale-102 border group ${
                 selectedNote?.id === note.id
                   ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700 shadow-md'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border-transparent'
@@ -117,11 +127,21 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1">
                   {note.title}
                 </h3>
-                {note.is_pinned && (
-                  <Badge variant="secondary" className="ml-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-                    📌
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1 ml-2">
+                  {note.is_pinned && (
+                    <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+                      📌
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleDeleteNote(note.id, e)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">
                 {note.content || 'No content'}
