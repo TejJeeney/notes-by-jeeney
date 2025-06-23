@@ -43,8 +43,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     if (data) {
       setThemeState(data.theme as Theme);
-      setCustomColorsState(data.custom_theme || {});
-      applyTheme(data.theme as Theme, data.custom_theme || {});
+      
+      // Safely convert Json to Record<string, string>
+      const customTheme = data.custom_theme;
+      if (customTheme && typeof customTheme === 'object' && !Array.isArray(customTheme)) {
+        const convertedColors: Record<string, string> = {};
+        Object.entries(customTheme).forEach(([key, value]) => {
+          if (typeof value === 'string') {
+            convertedColors[key] = value;
+          }
+        });
+        setCustomColorsState(convertedColors);
+        applyTheme(data.theme as Theme, convertedColors);
+      } else {
+        setCustomColorsState({});
+        applyTheme(data.theme as Theme, {});
+      }
     }
   };
 
