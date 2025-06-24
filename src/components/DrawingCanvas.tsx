@@ -1,9 +1,8 @@
-
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import { Download, Save, Trash2, Undo, Redo } from 'lucide-react';
+import { Download, Save, Trash2, Undo, Redo, Upload, Move, RotateCw } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 
 interface DrawingCanvasProps {
@@ -11,16 +10,32 @@ interface DrawingCanvasProps {
   onClose?: () => void;
 }
 
-type Tool = 'pen' | 'pencil' | 'highlighter' | 'eraser' | 'fill';
+type Tool = 'pen' | 'pencil' | 'highlighter' | 'eraser' | 'fill' | 'move';
+
+interface DrawingObject {
+  id: string;
+  type: 'image' | 'drawing';
+  data: string | ImageData;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
 
 export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState<Tool>('pen');
   const [color, setColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(3);
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [objects, setObjects] = useState<DrawingObject[]>([]);
+  const [selectedObject, setSelectedObject] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const { theme } = useTheme();
 
   const saveState = useCallback(() => {
@@ -44,9 +59,17 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
-    canvas.width = 800;
-    canvas.height = 600;
+    // Make canvas bigger and responsive
+    const updateCanvasSize = () => {
+      const container = canvas.parentElement;
+      if (container) {
+        canvas.width = Math.min(1200, container.clientWidth - 32);
+        canvas.height = Math.min(800, window.innerHeight - 200);
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
 
     // Set background color based on theme
     ctx.fillStyle = theme === 'dark' ? '#1e293b' : '#ffffff';
@@ -56,26 +79,67 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     setHistory([imageData]);
     setHistoryIndex(0);
+
+    return () => {
+      window.removeEventListener('resize', updateCanvasSize);
+    };
   }, [theme]);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
+    if (!canvas) return { x: 0, y: 0 };
+    
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    return {
+      x: (e.clientX - rect.left) * (canvas.width / rect.width),
+      y: (e.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const pos = getMousePos(e);
+    
+    if (tool === 'move') {
+      // Check if clicking on an object
+      const clickedObject = objects.find(obj => 
+        pos.x >= obj.x && pos.x <= obj.x + obj.width &&
+        pos.y >= obj.y && pos.y <= obj.y + obj.height
+      );
+      
+      if (clickedObject) {
+        setSelectedObject(clickedObject.id);
+        setIsDragging(true);
+        setDragStart({ x: pos.x - clickedObject.x, y: pos.y - clickedObject.y });
+      }
+      return;
+    }
 
     setIsDrawing(true);
     
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(pos.x, pos.y);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const pos = getMousePos(e);
+
+    if (tool === 'move' && isDragging && selectedObject) {
+      // Move selected object
+      setObjects(prev => prev.map(obj => 
+        obj.id === selectedObject 
+          ? { ...obj, x: pos.x - dragStart.x, y: pos.y - dragStart.y }
+          : obj
+      ));
+      redrawCanvas();
+      return;
+    }
+
     if (!isDrawing) return;
 
     const canvas = canvasRef.current;
@@ -83,10 +147,6 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
     // Set tool properties
     switch (tool) {
@@ -106,7 +166,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
         break;
       case 'highlighter':
         ctx.globalCompositeOperation = 'multiply';
-        ctx.strokeStyle = color + '40'; // Add transparency
+        ctx.strokeStyle = color + '40';
         ctx.lineWidth = brushSize * 3;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -119,10 +179,10 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
         break;
     }
 
-    ctx.lineTo(x, y);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(pos.x, pos.y);
   };
 
   const stopDrawing = () => {
@@ -130,6 +190,91 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
       setIsDrawing(false);
       saveState();
     }
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  const redrawCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear and set background
+    ctx.fillStyle = theme === 'dark' ? '#1e293b' : '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw all objects
+    objects.forEach(obj => {
+      if (obj.type === 'image') {
+        const img = new Image();
+        img.onload = () => {
+          ctx.save();
+          ctx.translate(obj.x + obj.width/2, obj.y + obj.height/2);
+          ctx.rotate(obj.rotation * Math.PI / 180);
+          ctx.drawImage(img, -obj.width/2, -obj.height/2, obj.width, obj.height);
+          ctx.restore();
+
+          // Draw selection border if selected
+          if (obj.id === selectedObject) {
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+            ctx.setLineDash([]);
+          }
+        };
+        img.src = obj.data as string;
+      }
+    });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const newObject: DrawingObject = {
+          id: Date.now().toString(),
+          type: 'image',
+          data: event.target?.result as string,
+          x: 50,
+          y: 50,
+          width: Math.min(img.width, 300),
+          height: Math.min(img.height, 300),
+          rotation: 0
+        };
+        setObjects(prev => [...prev, newObject]);
+        redrawCanvas();
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const rotateSelectedObject = () => {
+    if (!selectedObject) return;
+    setObjects(prev => prev.map(obj => 
+      obj.id === selectedObject 
+        ? { ...obj, rotation: (obj.rotation + 90) % 360 }
+        : obj
+    ));
+    redrawCanvas();
+  };
+
+  const resizeSelectedObject = (scale: number) => {
+    if (!selectedObject) return;
+    setObjects(prev => prev.map(obj => 
+      obj.id === selectedObject 
+        ? { ...obj, width: obj.width * scale, height: obj.height * scale }
+        : obj
+    ));
+    redrawCanvas();
   };
 
   const fillArea = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -141,11 +286,8 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(e.clientX - rect.left);
-    const y = Math.floor(e.clientY - rect.top);
-
-    floodFill(ctx, x, y, color);
+    const pos = getMousePos(e);
+    floodFill(ctx, Math.floor(pos.x), Math.floor(pos.y), color);
     saveState();
   };
 
@@ -161,7 +303,6 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const startB = data[startIdx + 2];
     const startA = data[startIdx + 3];
 
-    // Convert fill color to RGB
     const fillRGB = hexToRgb(fillColor);
     if (!fillRGB) return;
 
@@ -236,6 +377,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
     ctx.fillStyle = theme === 'dark' ? '#1e293b' : '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setObjects([]);
     saveState();
   };
 
@@ -243,19 +385,29 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const link = document.createElement('a');
-    link.download = `drawing-${Date.now()}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    // First redraw everything including objects
+    redrawCanvas();
+    
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.download = `drawing-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    }, 100);
   };
 
   const saveAsNote = () => {
     const canvas = canvasRef.current;
     if (!canvas || !onSave) return;
 
-    const imageData = canvas.toDataURL();
-    const title = `Drawing ${new Date().toLocaleDateString()}`;
-    onSave(imageData, title);
+    // Redraw everything including objects
+    redrawCanvas();
+    
+    setTimeout(() => {
+      const imageData = canvas.toDataURL();
+      const title = `Drawing ${new Date().toLocaleDateString()}`;
+      onSave(imageData, title);
+    }, 100);
   };
 
   const colors = [
@@ -264,16 +416,16 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-800">
-      {/* Toolbar */}
-      <div className="flex items-center gap-4 p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-800 overflow-hidden">
+      {/* Responsive Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 p-2 sm:p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 overflow-x-auto">
         {/* Tools */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 flex-wrap">
           <Button
             variant={tool === 'pen' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTool('pen')}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
             🖊️ Pen
           </Button>
@@ -281,7 +433,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
             variant={tool === 'pencil' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTool('pencil')}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
             ✏️ Pencil
           </Button>
@@ -289,7 +441,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
             variant={tool === 'highlighter' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTool('highlighter')}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
             🖍️ Highlighter
           </Button>
@@ -297,7 +449,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
             variant={tool === 'fill' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTool('fill')}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
             🪣 Fill
           </Button>
@@ -305,20 +457,29 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
             variant={tool === 'eraser' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTool('eraser')}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
             🧹 Eraser
           </Button>
+          <Button
+            variant={tool === 'move' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('move')}
+            className="text-xs sm:text-sm transition-all hover:scale-105"
+          >
+            <Move className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            Move
+          </Button>
         </div>
 
-        <Separator orientation="vertical" className="h-8" />
+        <Separator orientation="vertical" className="h-8 hidden sm:block" />
 
-        {/* Colors */}
-        <div className="flex gap-1">
+        {/* Colors - scrollable on mobile */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
           {colors.map((c) => (
             <button
               key={c}
-              className={`w-6 h-6 rounded border-2 transition-all hover:scale-110 ${
+              className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 transition-all hover:scale-110 flex-shrink-0 ${
                 color === c ? 'border-slate-600 dark:border-slate-300' : 'border-slate-300 dark:border-slate-600'
               }`}
               style={{ backgroundColor: c }}
@@ -329,79 +490,118 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
             type="color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            className="w-6 h-6 rounded border-2 border-slate-300 dark:border-slate-600 cursor-pointer hover:scale-110 transition-all"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-slate-300 dark:border-slate-600 cursor-pointer hover:scale-110 transition-all flex-shrink-0"
           />
         </div>
 
-        <Separator orientation="vertical" className="h-8" />
+        <Separator orientation="vertical" className="h-8 hidden sm:block" />
 
         {/* Brush Size */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-600 dark:text-slate-300">Size:</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Size:</span>
           <Slider
             value={[brushSize]}
             onValueChange={(value) => setBrushSize(value[0])}
             max={20}
             min={1}
             step={1}
-            className="w-20"
+            className="w-16 sm:w-20"
           />
-          <span className="text-sm font-mono text-slate-600 dark:text-slate-300 w-6">{brushSize}</span>
+          <span className="text-xs font-mono text-slate-600 dark:text-slate-300 w-4 sm:w-6">{brushSize}</span>
         </div>
 
-        <Separator orientation="vertical" className="h-8" />
+        <Separator orientation="vertical" className="h-8 hidden sm:block" />
+
+        {/* File Upload */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          className="text-xs sm:text-sm transition-all hover:scale-105"
+        >
+          <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+          Upload
+        </Button>
+
+        {/* Object Controls */}
+        {selectedObject && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={rotateSelectedObject}
+              className="text-xs sm:text-sm transition-all hover:scale-105"
+            >
+              <RotateCw className="w-3 h-3 sm:w-4 sm:h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => resizeSelectedObject(1.2)}
+              className="text-xs sm:text-sm transition-all hover:scale-105"
+            >
+              +
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => resizeSelectedObject(0.8)}
+              className="text-xs sm:text-sm transition-all hover:scale-105"
+            >
+              -
+            </Button>
+          </>
+        )}
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={undo}
             disabled={historyIndex <= 0}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
-            <Undo className="w-4 h-4" />
+            <Undo className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={redo}
             disabled={historyIndex >= history.length - 1}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
-            <Redo className="w-4 h-4" />
+            <Redo className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={clearCanvas}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
         </div>
 
-        <Separator orientation="vertical" className="h-8" />
-
         {/* Save/Export */}
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-1 sm:gap-2 ml-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={downloadImage}
-            className="transition-all hover:scale-105"
+            className="text-xs sm:text-sm transition-all hover:scale-105"
           >
-            <Download className="w-4 h-4 mr-1" />
+            <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             Export
           </Button>
           {onSave && (
             <Button
               size="sm"
               onClick={saveAsNote}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all hover:scale-105"
+              className="text-xs sm:text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all hover:scale-105"
             >
-              <Save className="w-4 h-4 mr-1" />
-              Save as Note
+              <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              Save
             </Button>
           )}
           {onClose && (
@@ -409,7 +609,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="transition-all hover:scale-105"
+              className="text-xs sm:text-sm transition-all hover:scale-105"
             >
               Close
             </Button>
@@ -417,17 +617,25 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
         </div>
       </div>
 
-      {/* Canvas */}
-      <div className="flex-1 p-4 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+      {/* Canvas Container */}
+      <div className="flex-1 p-2 sm:p-4 bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-auto">
         <canvas
           ref={canvasRef}
-          className="border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg cursor-crosshair"
+          className="border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg cursor-crosshair max-w-full max-h-full"
           onMouseDown={tool === 'fill' ? fillArea : startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
         />
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
     </div>
   );
 }

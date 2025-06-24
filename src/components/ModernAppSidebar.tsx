@@ -7,7 +7,7 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/compone
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotes } from '@/hooks/useNotes';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggleButton } from './ThemeToggleButton';
 import { toast } from 'sonner';
 
 interface ModernAppSidebarProps {
@@ -63,31 +63,31 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <Sidebar className="border-r border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
-      <SidebarHeader className="p-6 border-b border-slate-200/60 dark:border-slate-700/60">
+      <SidebarHeader className="p-4 sm:p-6 border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Notes
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:from-purple-600 hover:to-indigo-600 transition-all duration-300">
+            PawNotes
           </h1>
           <div className="flex gap-2">
-            <ThemeToggle />
+            <ThemeToggleButton />
             <Button
               onClick={signOut}
               variant="ghost"
               size="sm"
-              className="text-slate-500 hover:text-red-500 transition-colors"
+              className="text-slate-500 hover:text-red-500 transition-all duration-300 hover:scale-110"
             >
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-hover:text-purple-500 w-4 h-4 transition-colors duration-300" />
           <Input
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300 hover:shadow-md focus:shadow-lg"
           />
         </div>
         
@@ -95,7 +95,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           <Button
             onClick={handleCreateNote}
             size="sm"
-            className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+            className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <Plus className="w-4 h-4 mr-1" />
             New Note
@@ -104,32 +104,42 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
             onClick={() => setShowPinnedOnly(!showPinnedOnly)}
             variant={showPinnedOnly ? "default" : "outline"}
             size="sm"
-            className="transition-all duration-200 hover:scale-105"
+            className="transition-all duration-300 hover:scale-105"
           >
             <Filter className="w-4 h-4" />
           </Button>
         </div>
+
+        {/* Made with love by JEENEY */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Made with love by{' '}
+            <span className="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent font-bold animate-pulse hover:animate-bounce transition-all duration-300">
+              JEENEY
+            </span>
+          </p>
+        </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-4">
+      <SidebarContent className="p-4 overflow-y-auto">
         <div className="space-y-2">
           {filteredNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => onSelectNote?.(note)}
-              className={`p-4 rounded-lg cursor-pointer transition-all duration-200 hover:scale-102 border group ${
+              className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-300 hover:scale-102 border group hover:shadow-md ${
                 selectedNote?.id === note.id
-                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700 shadow-md'
-                  : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border-transparent'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700 shadow-md scale-102'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1">
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1 text-sm sm:text-base">
                   {note.title}
                 </h3>
                 <div className="flex items-center gap-1 ml-2">
                   {note.is_pinned && (
-                    <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+                    <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs">
                       📌
                     </Badge>
                   )}
@@ -137,7 +147,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
                     variant="ghost"
                     size="sm"
                     onClick={(e) => handleDeleteNote(note.id, e)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                    className="opacity-0 group-hover:opacity-100 transition-all duration-300 h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 hover:scale-110"
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
@@ -151,7 +161,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
                   <Badge
                     key={index}
                     variant="outline"
-                    className="text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700"
+                    className="text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors duration-200"
                   >
                     #{tag}
                   </Badge>
@@ -169,7 +179,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           ))}
           
           {filteredNotes.length === 0 && (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400 animate-fade-in">
               {searchQuery ? 'No notes found' : 'No notes yet'}
             </div>
           )}
@@ -182,7 +192,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
             onClick={exportNotes}
             variant="outline"
             size="sm"
-            className="flex-1 transition-all duration-200 hover:scale-105"
+            className="flex-1 transition-all duration-300 hover:scale-105 hover:shadow-md"
           >
             <Download className="w-4 h-4 mr-1" />
             Export
@@ -190,7 +200,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 transition-all duration-200 hover:scale-105"
+            className="flex-1 transition-all duration-300 hover:scale-105 hover:shadow-md"
             onClick={() => document.getElementById('import-input')?.click()}
           >
             <Upload className="w-4 h-4 mr-1" />

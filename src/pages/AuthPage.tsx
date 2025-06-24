@@ -71,7 +71,6 @@ export default function AuthPage() {
       } else if (isSignUp) {
         setError('');
         setIsSignUp(false);
-        // Show success message for signup
         alert('Account created! Please check your email for confirmation before signing in.');
       }
     } catch (err) {
@@ -83,32 +82,35 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
+      {/* Enhanced animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-4 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-4 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob hover:scale-110 transition-transform duration-500"></div>
+        <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 hover:scale-110 transition-transform duration-500"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 hover:scale-110 transition-transform duration-500"></div>
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse hover:opacity-80 transition-opacity duration-300"></div>
       </div>
 
-      {/* Floating icons */}
+      {/* Enhanced floating icons with hover effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <BookOpen className="absolute top-20 left-10 w-8 h-8 text-purple-400 opacity-60 animate-float" />
-        <PenTool className="absolute top-32 right-20 w-6 h-6 text-indigo-400 opacity-60 animate-float animation-delay-1000" />
-        <Sparkles className="absolute bottom-32 left-16 w-7 h-7 text-pink-400 opacity-60 animate-float animation-delay-2000" />
-        <Mail className="absolute bottom-20 right-16 w-6 h-6 text-purple-400 opacity-60 animate-float animation-delay-3000" />
+        <BookOpen className="absolute top-20 left-10 w-8 h-8 text-purple-400 opacity-60 animate-float hover:opacity-100 hover:scale-125 transition-all duration-300" />
+        <PenTool className="absolute top-32 right-20 w-6 h-6 text-indigo-400 opacity-60 animate-float animation-delay-1000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
+        <Sparkles className="absolute bottom-32 left-16 w-7 h-7 text-pink-400 opacity-60 animate-float animation-delay-2000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
+        <Mail className="absolute bottom-20 right-16 w-6 h-6 text-purple-400 opacity-60 animate-float animation-delay-3000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
+        <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-gradient-to-r from-red-400 to-yellow-400 rounded-full opacity-70 animate-bounce"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-70 animate-ping"></div>
       </div>
 
-      <Card className="w-full max-w-md relative z-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-white/20 shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg">
-              <BookOpen className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-center space-x-2 mb-4 group">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg group-hover:from-purple-600 group-hover:to-indigo-600 transition-all duration-300 group-hover:scale-110">
+              <BookOpen className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
             </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              ModernNotes
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-indigo-700 transition-all duration-300">
+              PawNotes
             </CardTitle>
           </div>
-          <CardDescription className="text-slate-600 dark:text-slate-300">
+          <CardDescription className="text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-300">
             {isSignUp ? 'Create your account to get started' : 'Welcome back! Sign in to your account'}
           </CardDescription>
         </CardHeader>
@@ -116,15 +118,15 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <div className="relative group">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-hover:text-purple-500 transition-colors duration-300" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400"
+                  className="pl-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-md focus:shadow-lg"
                   disabled={loading}
                 />
               </div>
@@ -132,21 +134,21 @@ export default function AuthPage() {
             
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <div className="relative group">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-hover:text-purple-500 transition-colors duration-300" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-9 pr-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400"
+                  className="pl-9 pr-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-md focus:shadow-lg"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 hover:scale-110"
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -155,7 +157,7 @@ export default function AuthPage() {
             </div>
 
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 animate-shake">
                 <AlertDescription className="text-red-600 dark:text-red-400">
                   {error}
                 </AlertDescription>
@@ -164,7 +166,7 @@ export default function AuthPage() {
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-2.5 transition-all duration-200 transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-2.5 transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95"
               disabled={loading}
             >
               {loading ? (
@@ -185,7 +187,7 @@ export default function AuthPage() {
                 setIsSignUp(!isSignUp);
                 setError('');
               }}
-              className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+              className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-all duration-300 hover:scale-105 hover:underline"
               disabled={loading}
             >
               {isSignUp 
@@ -195,44 +197,23 @@ export default function AuthPage() {
             </button>
           </div>
 
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-300">
             <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
               🔒 Your data is protected with enterprise-grade security
             </p>
           </div>
+
+          {/* Made with love by JEENEY */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Made with love by{' '}
+              <span className="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent font-bold animate-pulse hover:animate-bounce transition-all duration-300">
+                JEENEY
+              </span>
+            </p>
+          </div>
         </CardContent>
       </Card>
-
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        .animation-delay-3000 {
-          animation-delay: 3s;
-        }
-      `}</style>
     </div>
   );
 }

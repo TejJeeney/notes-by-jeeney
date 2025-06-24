@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Note } from '@/hooks/useNotes';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TagInput } from './TagInput';
 import { DrawingCanvas } from './DrawingCanvas';
-import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, FileImage } from 'lucide-react';
+import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload, Image } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   const [showDrawing, setShowDrawing] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setTitle(note.title);
@@ -71,11 +72,36 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   };
 
   const handleSaveDrawing = (imageData: string, drawingTitle: string) => {
-    const imageTag = `![Drawing](${imageData})`;
-    const newContent = content + '\n\n' + imageTag;
+    // Save as proper image tag instead of markdown
+    const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${imageData}" alt="${drawingTitle}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">${drawingTitle}</p></div>`;
+    const newContent = content + '\n\n' + imageHtml;
     setContent(newContent);
     setShowDrawing(false);
     toast.success('Drawing added to note!');
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      const fileName = file.name;
+      
+      if (file.type.startsWith('image/')) {
+        // Handle image files
+        const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${result}" alt="${fileName}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">${fileName}</p></div>`;
+        setContent(prev => prev + '\n\n' + imageHtml);
+      } else {
+        // Handle other files as attachments
+        const attachmentHtml = `<div class="note-attachment" style="margin: 20px 0; padding: 12px; border: 2px dashed #ddd; border-radius: 8px; text-align: center;"><p style="margin: 0; color: #666;">📎 Attachment: ${fileName}</p></div>`;
+        setContent(prev => prev + '\n\n' + attachmentHtml);
+      }
+      
+      toast.success(`${file.type.startsWith('image/') ? 'Image' : 'File'} added to note!`);
+    };
+    reader.readAsDataURL(file);
   };
 
   const formatDateTime = (date: string) => {
@@ -99,15 +125,15 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
 
   return (
     <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-      <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
-        <div className="flex items-center justify-between mb-4">
+      <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-4 sm:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title..."
-            className="text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="text-xl sm:text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {hasChanges && (
               <Button 
                 onClick={handleSave}
@@ -126,6 +152,15 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
             >
               <Brush className="w-4 h-4 mr-1" />
               Draw
+            </Button>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              variant="outline"
+              size="sm"
+              className="transition-all duration-200 hover:scale-110"
+            >
+              <Upload className="w-4 h-4 mr-1" />
+              Upload
             </Button>
             <Button
               onClick={generateSummary}
@@ -157,7 +192,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         </div>
         
         {summary && (
-          <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
+          <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700 animate-fade-in">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span className="font-semibold text-indigo-800 dark:text-indigo-200">AI Summary</span>
@@ -174,7 +209,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
           />
         </div>
         
-        <div className="flex items-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span>Created: {formatDateTime(note.created_at)}</span>
@@ -192,14 +227,22 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         </div>
       </div>
       
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4 sm:p-6 overflow-auto">
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Start writing your note... Click 'Draw' to add sketches or diagrams!"
-          className="w-full h-full min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
+          placeholder="Start writing your note... Click 'Draw' to add sketches, 'Upload' to add files, or just type your thoughts!"
+          className="w-full h-full min-h-[300px] sm:min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
         />
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="*/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
     </div>
   );
 }
