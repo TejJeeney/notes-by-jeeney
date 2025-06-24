@@ -1,22 +1,22 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { FileText, Mail, Lock, User, ArrowRight, Sparkles, Phone, Star, Zap, Heart } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Mail, Lock, Eye, EyeOff, Sparkles, BookOpen, PenTool } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function AuthPage() {
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -26,294 +26,213 @@ export default function AuthPage() {
     }
   }, [user, navigate]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    if (authMethod === 'phone') {
-      // For now, we'll simulate phone auth with email format
-      const emailFromPhone = `${phoneNumber.replace(/\D/g, '')}@phone.auth`;
-      const { error } = await signIn(emailFromPhone, password);
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Welcome back!');
-      }
-    } else {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Welcome back!');
-      }
+  const validateInput = () => {
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return false;
     }
     
-    setLoading(false);
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    if (authMethod === 'phone') {
-      // For now, we'll simulate phone auth with email format
-      const emailFromPhone = `${phoneNumber.replace(/\D/g, '')}@phone.auth`;
-      const { error } = await signUp(emailFromPhone, password);
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Account created! Please check your phone for verification.');
-      }
-    } else {
-      const { error } = await signUp(email, password);
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Account created! Please check your email to verify your account.');
-      }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
     }
     
-    setLoading(false);
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    
+    return true;
   };
 
-  // Floating animation elements
-  const floatingElements = Array.from({ length: 12 }, (_, i) => (
-    <div
-      key={i}
-      className={`absolute animate-bounce opacity-20 dark:opacity-10 text-indigo-500 dark:text-purple-400 ${
-        i % 4 === 0 ? 'animate-pulse' : 
-        i % 4 === 1 ? 'animate-ping' : 
-        i % 4 === 2 ? 'animate-spin' : 'animate-bounce'
-      }`}
-      style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 3}s`,
-        animationDuration: `${2 + Math.random() * 3}s`
-      }}
-    >
-      {i % 4 === 0 ? <Star className="w-4 h-4" /> :
-       i % 4 === 1 ? <Sparkles className="w-3 h-3" /> :
-       i % 4 === 2 ? <Zap className="w-3 h-3" /> : <Heart className="w-3 h-3" />}
-    </div>
-  ));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateInput()) return;
+    
+    setLoading(true);
+    setError('');
+
+    try {
+      const { error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password);
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (error.message.includes('User already registered')) {
+          setError('An account with this email already exists. Try signing in instead.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.');
+        } else {
+          setError(error.message);
+        }
+      } else if (isSignUp) {
+        setError('');
+        setIsSignUp(false);
+        // Show success message for signup
+        alert('Account created! Please check your email for confirmation before signing in.');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4 transition-all duration-300 overflow-hidden relative">
-      {/* Floating background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {floatingElements}
-        
-        {/* Animated gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-indigo-400 to-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-r from-pink-400 to-purple-600 rounded-full blur-3xl opacity-20 animate-bounce" style={{ animationDuration: '3s' }}></div>
-        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full blur-2xl opacity-15 animate-ping" style={{ animationDuration: '4s' }}></div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-4 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
+      {/* Floating icons */}
+      <div className="absolute inset-0 pointer-events-none">
+        <BookOpen className="absolute top-20 left-10 w-8 h-8 text-purple-400 opacity-60 animate-float" />
+        <PenTool className="absolute top-32 right-20 w-6 h-6 text-indigo-400 opacity-60 animate-float animation-delay-1000" />
+        <Sparkles className="absolute bottom-32 left-16 w-7 h-7 text-pink-400 opacity-60 animate-float animation-delay-2000" />
+        <Mail className="absolute bottom-20 right-16 w-6 h-6 text-purple-400 opacity-60 animate-float animation-delay-3000" />
       </div>
-      
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl animate-bounce">
-            <FileText className="w-10 h-10 text-white animate-pulse" />
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 animate-scale-in">
-            Welcome to Notes
-          </h1>
-          <p className="text-slate-600 dark:text-slate-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Your beautiful note-taking experience awaits
-          </p>
-        </div>
 
-        <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-700/60 shadow-2xl animate-scale-in hover:shadow-3xl transition-all duration-300 hover:scale-105">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-indigo-500 animate-spin" style={{ animationDuration: '3s' }} />
-              <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Get Started
-              </CardTitle>
-              <Sparkles className="w-5 h-5 text-purple-500 animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+      <Card className="w-full max-w-md relative z-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-white/20 shadow-2xl">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg">
+              <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <CardDescription className="text-slate-600 dark:text-slate-300">
-              Sign in to your account or create a new one
-            </CardDescription>
-            
-            {/* Auth method toggle */}
-            <div className="mt-4">
-              <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-                <Button
-                  type="button"
-                  variant={authMethod === 'email' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setAuthMethod('email')}
-                  className="flex-1 transition-all duration-200"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </Button>
-                <Button
-                  type="button"
-                  variant={authMethod === 'phone' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setAuthMethod('phone')}
-                  className="flex-1 transition-all duration-200"
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Phone
-                </Button>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              ModernNotes
+            </CardTitle>
+          </div>
+          <CardDescription className="text-slate-600 dark:text-slate-300">
+            {isSignUp ? 'Create your account to get started' : 'Welcome back! Sign in to your account'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400"
+                  disabled={loading}
+                />
               </div>
             </div>
-          </CardHeader>
-          
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin" className="transition-all duration-200 hover:scale-105">
-                  Sign In
-                </TabsTrigger>
-                <TabsTrigger value="signup" className="transition-all duration-200 hover:scale-105">
-                  Sign Up
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-auth" className="text-slate-700 dark:text-slate-300">
-                      {authMethod === 'email' ? 'Email' : 'Phone Number'}
-                    </Label>
-                    <div className="relative">
-                      {authMethod === 'email' ? (
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      ) : (
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      )}
-                      <Input
-                        id="signin-auth"
-                        type={authMethod === 'email' ? 'email' : 'tel'}
-                        placeholder={authMethod === 'email' ? 'Enter your email' : 'Enter your phone number'}
-                        value={authMethod === 'email' ? email : phoneNumber}
-                        onChange={(e) => authMethod === 'email' ? setEmail(e.target.value) : setPhoneNumber(e.target.value)}
-                        required
-                        className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all hover:scale-105 focus:scale-105"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-slate-700 dark:text-slate-300">
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      <Input
-                        id="signin-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all hover:scale-105 focus:scale-105"
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Signing in...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        Sign In
-                        <ArrowRight className="w-4 h-4 animate-bounce" style={{ animationDirection: 'alternate' }} />
-                      </div>
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-auth" className="text-slate-700 dark:text-slate-300">
-                      {authMethod === 'email' ? 'Email' : 'Phone Number'}
-                    </Label>
-                    <div className="relative">
-                      {authMethod === 'email' ? (
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      ) : (
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      )}
-                      <Input
-                        id="signup-auth"
-                        type={authMethod === 'email' ? 'email' : 'tel'}
-                        placeholder={authMethod === 'email' ? 'Enter your email' : 'Enter your phone number'}
-                        value={authMethod === 'email' ? email : phoneNumber}
-                        onChange={(e) => authMethod === 'email' ? setEmail(e.target.value) : setPhoneNumber(e.target.value)}
-                        required
-                        className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all hover:scale-105 focus:scale-105"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-slate-700 dark:text-slate-300">
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="Create a password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="pl-10 bg-slate-50/80 dark:bg-slate-700/80 border-slate-200/60 dark:border-slate-600/60 focus:ring-2 focus:ring-indigo-500/20 transition-all hover:scale-105 focus:scale-105"
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Creating account...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 animate-pulse" />
-                        Create Account
-                      </div>
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-        
-        <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          By signing up, you agree to our terms and privacy policy
-        </p>
-      </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-9 pr-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+                <AlertDescription className="text-red-600 dark:text-red-400">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-2.5 transition-all duration-200 transform hover:scale-105"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                </>
+              ) : (
+                isSignUp ? 'Create Account' : 'Sign In'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+              disabled={loading}
+            >
+              {isSignUp 
+                ? 'Already have an account? Sign in' 
+                : "Don't have an account? Sign up"
+              }
+            </button>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
+              🔒 Your data is protected with enterprise-grade security
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <style jsx>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        .animation-delay-1000 {
+          animation-delay: 1s;
+        }
+        .animation-delay-3000 {
+          animation-delay: 3s;
+        }
+      `}</style>
     </div>
   );
 }
