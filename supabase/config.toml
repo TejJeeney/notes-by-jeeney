@@ -32,11 +32,16 @@ openai_api_key = "env(OPENAI_API_KEY)"
 [inbucket]
 enabled = true
 port = 54325
-# Inbucket web interface
 smtp_port = 54326
 pop3_port = 54327
 
 [functions.ai-summary]
+verify_jwt = true
+
+[functions.gemini-ai]
+verify_jwt = true
+
+[functions.image-generator]
 verify_jwt = true
 
 [auth]

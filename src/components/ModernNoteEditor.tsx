@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Note } from '@/hooks/useNotes';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TagInput } from './TagInput';
 import { DrawingCanvas } from './DrawingCanvas';
-import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload, Image } from 'lucide-react';
+import { AIAssistant } from './ai/AIAssistant';
+import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload, Image, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   const [tags, setTags] = useState(note.tags);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDrawing, setShowDrawing] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,12 +73,25 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   };
 
   const handleSaveDrawing = (imageData: string, drawingTitle: string) => {
-    // Save as proper image tag instead of markdown
     const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${imageData}" alt="${drawingTitle}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">${drawingTitle}</p></div>`;
     const newContent = content + '\n\n' + imageHtml;
     setContent(newContent);
     setShowDrawing(false);
     toast.success('Drawing added to note!');
+  };
+
+  const handleAIImageGenerated = (imageData: string) => {
+    const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${imageData}" alt="AI Generated Image" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">AI Generated Image</p></div>`;
+    const newContent = content + '\n\n' + imageHtml;
+    setContent(newContent);
+    toast.success('AI generated image added to note!');
+  };
+
+  const handleStickerSuggested = (sticker: string) => {
+    const stickerHtml = `<span style="font-size: 24px; margin: 0 5px;">${sticker}</span>`;
+    const newContent = content + ' ' + stickerHtml;
+    setContent(newContent);
+    toast.success('Sticker added to note!');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,11 +104,9 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
       const fileName = file.name;
       
       if (file.type.startsWith('image/')) {
-        // Handle image files
         const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${result}" alt="${fileName}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">${fileName}</p></div>`;
         setContent(prev => prev + '\n\n' + imageHtml);
       } else {
-        // Handle other files as attachments
         const attachmentHtml = `<div class="note-attachment" style="margin: 20px 0; padding: 12px; border: 2px dashed #ddd; border-radius: 8px; text-align: center;"><p style="margin: 0; color: #666;">📎 Attachment: ${fileName}</p></div>`;
         setContent(prev => prev + '\n\n' + attachmentHtml);
       }
@@ -120,6 +132,29 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         onSave={handleSaveDrawing}
         onClose={() => setShowDrawing(false)}
       />
+    );
+  }
+
+  if (showAI) {
+    return (
+      <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            AI Assistant
+          </h2>
+          <Button
+            onClick={() => setShowAI(false)}
+            variant="outline"
+            size="sm"
+          >
+            Back to Note
+          </Button>
+        </div>
+        <AIAssistant
+          onImageGenerated={handleAIImageGenerated}
+          onStickerSuggested={handleStickerSuggested}
+        />
+      </div>
     );
   }
 
@@ -152,6 +187,15 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
             >
               <Brush className="w-4 h-4 mr-1" />
               Draw
+            </Button>
+            <Button
+              onClick={() => setShowAI(true)}
+              variant="outline"
+              size="sm"
+              className="transition-all duration-200 hover:scale-110 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20"
+            >
+              <Bot className="w-4 h-4 mr-1" />
+              AI Assistant
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -231,7 +275,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Start writing your note... Click 'Draw' to add sketches, 'Upload' to add files, or just type your thoughts!"
+          placeholder="Start writing your note... Click 'Draw' to add sketches, 'AI Assistant' for help, 'Upload' to add files, or just type your thoughts!"
           className="w-full h-full min-h-[300px] sm:min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
         />
       </div>
