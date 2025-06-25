@@ -1,5 +1,5 @@
 
-import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee } from 'lucide-react';
+import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Gamepad2, Crown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNotes } from '@/hooks/useNotes';
@@ -56,8 +56,8 @@ export function ModernWelcome() {
     },
     {
       icon: Mic,
-      title: "Rap Mode",
-      description: "Transform your notes into fire rap lyrics with wordplay and flow",
+      title: "Advanced Rap Mode",
+      description: "Transform your notes into fire rap lyrics with advanced controls and humanization",
       emoji: "🎤",
       id: "rap"
     },
@@ -74,6 +74,27 @@ export function ModernWelcome() {
       description: "Transform your thoughts into beautiful traditional or free-style Haiku",
       emoji: "🌸",
       id: "haiku"
+    },
+    {
+      icon: Users,
+      title: "Character Mode",
+      description: "Rewrite text from the perspective of famous characters like Shakespeare or Snoop Dogg",
+      emoji: "🎭",
+      id: "character"
+    },
+    {
+      icon: Gamepad2,
+      title: "Gamification Mode",
+      description: "Transform boring text into exciting quests, missions, and challenges",
+      emoji: "🎮",
+      id: "gamification"
+    },
+    {
+      icon: Crown,
+      title: "Mythology Mode",
+      description: "Reimagine your text as epic tales from Mahabharata, Norse sagas, or Greek myths",
+      emoji: "👑",
+      id: "mythology"
     }
   ];
 
