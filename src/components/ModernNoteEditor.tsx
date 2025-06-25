@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TagInput } from './TagInput';
 import { DrawingCanvas } from './DrawingCanvas';
-import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload } from 'lucide-react';
+import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,9 +15,10 @@ interface ModernNoteEditorProps {
   note: Note;
   onUpdateNote: (id: string, updates: Partial<Note>) => void;
   onTogglePin: (id: string) => void;
+  onBack?: () => void;
 }
 
-export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNoteEditorProps) {
+export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: ModernNoteEditorProps) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [tags, setTags] = useState(note.tags);
@@ -42,9 +43,14 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
     setHasChanges(titleChanged || contentChanged || tagsChanged);
   }, [title, content, tags, note]);
 
-  const handleSave = () => {
-    onUpdateNote(note.id, { title, content, tags });
-    setHasChanges(false);
+  const handleSave = async () => {
+    try {
+      await onUpdateNote(note.id, { title, content, tags });
+      setHasChanges(false);
+      toast.success('Note saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save note. Please try again.');
+    }
   };
 
   const generateSummary = async () => {
@@ -122,15 +128,27 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   }
 
   return (
-    <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+    <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm overflow-auto">
       <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-4 sm:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Note title..."
-            className="text-xl sm:text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {onBack && (
+              <Button 
+                onClick={onBack}
+                variant="ghost"
+                size="sm"
+                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:scale-110 transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Note title..."
+              className="text-xl sm:text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1 min-w-0"
+            />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {hasChanges && (
               <Button 
@@ -225,7 +243,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         </div>
       </div>
       
-      <div className="flex-1 p-4 sm:p-6 overflow-auto">
+      <div className="flex-1 p-4 sm:p-6">
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

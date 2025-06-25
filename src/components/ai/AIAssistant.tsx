@@ -1,21 +1,22 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MessageSquare, Languages, BookOpen, Star, Sparkles, Heart } from 'lucide-react';
+import { ChatInterface } from './ChatInterface';
 
 interface AIAssistantProps {
+  selectedTool?: string;
   onStickerSuggested?: (sticker: string) => void;
 }
 
-export function AIAssistant({ onStickerSuggested }: AIAssistantProps) {
+export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantProps) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
@@ -25,6 +26,16 @@ export function AIAssistant({ onStickerSuggested }: AIAssistantProps) {
   const [storyWords, setStoryWords] = useState('');
   const [storyScenario, setStoryScenario] = useState('');
   const [complimentCategory, setComplimentCategory] = useState('');
+
+  // Clear results when switching tools
+  useEffect(() => {
+    setResult('');
+    setPrompt('');
+    setZodiacAdvice('');
+    setStoryWords('');
+    setStoryScenario('');
+    setComplimentCategory('');
+  }, [selectedTool]);
 
   const callGeminiAI = async (text: string, action: string, lang?: string) => {
     setLoading(true);
@@ -84,18 +95,6 @@ export function AIAssistant({ onStickerSuggested }: AIAssistantProps) {
     }
   };
 
-  const chatWithAI = async () => {
-    if (!prompt.trim()) {
-      toast.error('Please enter a message');
-      return;
-    }
-
-    const response = await callGeminiAI(prompt, 'chat');
-    if (response) {
-      setResult(response);
-    }
-  };
-
   const generateStory = async () => {
     if (!storyWords.trim() || !storyScenario.trim()) {
       toast.error('Please enter both words and scenario');
@@ -141,208 +140,179 @@ export function AIAssistant({ onStickerSuggested }: AIAssistantProps) {
     { code: 'zh', name: 'Chinese' }
   ];
 
-  const aiTools = [
-    { id: 'chat', icon: MessageSquare, title: 'Chat Assistant', emoji: '💬' },
-    { id: 'translate', icon: Languages, title: 'Translator', emoji: '🌍' },
-    { id: 'zodiac', icon: Star, title: 'Zodiac Insights', emoji: '♈️' },
-    { id: 'sticker', icon: Sparkles, title: 'Smart Stickers', emoji: '✨' },
-    { id: 'story', icon: BookOpen, title: 'Story Generator', emoji: '📚' },
-    { id: 'compliment', icon: Heart, title: 'Compliment Generator', emoji: '💫' }
-  ];
+  // Render specific tool interface based on selectedTool
+  if (selectedTool === 'chat') {
+    return <ChatInterface />;
+  }
 
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <Sparkles className="w-6 h-6 text-purple-600" />
-          AI Assistant Tools
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6">
-            {aiTools.map((tool) => (
-              <TabsTrigger key={tool.id} value={tool.id} className="text-xs flex flex-col items-center gap-1 p-2">
-                <span className="text-lg">{tool.emoji}</span>
-                <span className="hidden sm:inline">{tool.title}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          <TabsContent value="chat" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold">Chat with AI</h3>
-            </div>
-            <Textarea
-              placeholder="Ask me anything..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <Button onClick={chatWithAI} disabled={loading} className="w-full">
-              {loading ? 'Thinking...' : 'Chat with AI'}
-            </Button>
-            {result && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm whitespace-pre-wrap">{result}</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="translate" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Languages className="w-5 h-5 text-green-600" />
-              <h3 className="text-lg font-semibold">Language Translator</h3>
-            </div>
-            <Textarea
-              placeholder="Enter text to translate..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <div className="flex gap-2">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={translateText} disabled={loading} className="flex-1">
-                {loading ? 'Translating...' : 'Translate'}
-              </Button>
-            </div>
-            {result && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Translation:</p>
-                  <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="zodiac" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Star className="w-5 h-5 text-yellow-600" />
-              <h3 className="text-lg font-semibold">Zodiac Insights</h3>
-            </div>
-            <Select value={zodiacSign} onValueChange={setZodiacSign}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your zodiac sign" />
+  if (selectedTool === 'translate') {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Languages className="w-5 h-5 text-green-600" />
+            Language Translator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Enter text to translate..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <div className="flex gap-2">
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
-                {zodiacSigns.map((sign) => (
-                  <SelectItem key={sign} value={sign}>
-                    {sign}
+                {languages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={getZodiacAdvice} disabled={loading} className="w-full">
-              {loading ? 'Consulting the stars...' : 'Get Today\'s Note Advice'}
+            <Button onClick={translateText} disabled={loading} className="flex-1">
+              {loading ? 'Translating...' : 'Translate'}
             </Button>
-            {zodiacAdvice && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Your Zodiac Note Advice:</p>
-                  <p className="text-sm mt-2 italic whitespace-pre-wrap">{zodiacAdvice}</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+          </div>
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm font-medium">Translation:</p>
+                <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
-          <TabsContent value="sticker" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <h3 className="text-lg font-semibold">Smart Stickers</h3>
-            </div>
-            <Textarea
-              placeholder="Describe what you're writing about to get sticker suggestions..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <Button onClick={getStickerSuggestion} disabled={loading} className="w-full">
-              {loading ? 'Getting suggestions...' : 'Get Sticker Suggestion'}
-            </Button>
-            {result && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Suggested Sticker:</p>
-                  <Badge variant="secondary" className="text-2xl mt-2">{result}</Badge>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+  if (selectedTool === 'zodiac') {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Star className="w-5 h-5 text-yellow-600" />
+            Zodiac Insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Select value={zodiacSign} onValueChange={setZodiacSign}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select your zodiac sign" />
+            </SelectTrigger>
+            <SelectContent>
+              {zodiacSigns.map((sign) => (
+                <SelectItem key={sign} value={sign}>
+                  {sign}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={getZodiacAdvice} disabled={loading} className="w-full">
+            {loading ? 'Consulting the stars...' : 'Get Today\'s Note Advice'}
+          </Button>
+          {zodiacAdvice && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm font-medium">Your Zodiac Note Advice:</p>
+                <p className="text-sm mt-2 italic whitespace-pre-wrap">{zodiacAdvice}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
-          <TabsContent value="story" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <BookOpen className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-lg font-semibold">Story Generator</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Words to Include</label>
-                <Input
-                  placeholder="e.g., dragon, castle, adventure"
-                  value={storyWords}
-                  onChange={(e) => setStoryWords(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Scenario</label>
-                <Input
-                  placeholder="e.g., medieval fantasy, space exploration"
-                  value={storyScenario}
-                  onChange={(e) => setStoryScenario(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button onClick={generateStory} disabled={loading} className="w-full">
-              {loading ? 'Creating story...' : 'Generate Story'}
-            </Button>
-            {result && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Your Generated Story:</p>
-                  <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+  if (selectedTool === 'sticker') {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            Smart Stickers
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Describe what you're writing about to get sticker suggestions..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <Button onClick={getStickerSuggestion} disabled={loading} className="w-full">
+            {loading ? 'Getting suggestions...' : 'Get Sticker Suggestion'}
+          </Button>
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm font-medium">Suggested Sticker:</p>
+                <Badge variant="secondary" className="text-2xl mt-2">{result}</Badge>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
-          <TabsContent value="compliment" className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Heart className="w-5 h-5 text-red-600" />
-              <h3 className="text-lg font-semibold">Obscure Compliment Generator</h3>
+  if (selectedTool === 'story') {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <BookOpen className="w-5 h-5 text-indigo-600" />
+            Story Generator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Words to Include</label>
+              <Input
+                placeholder="e.g., dragon, castle, adventure"
+                value={storyWords}
+                onChange={(e) => setStoryWords(e.target.value)}
+              />
             </div>
-            <Input
-              placeholder="Enter any object or concept (e.g., doorknob, left elbow, sound of rain)"
-              value={complimentCategory}
-              onChange={(e) => setComplimentCategory(e.target.value)}
-            />
-            <Button onClick={generateCompliment} disabled={loading} className="w-full">
-              {loading ? 'Crafting compliment...' : 'Generate Philosophical Compliment'}
-            </Button>
-            {result && (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Your Obscure Compliment:</p>
-                  <p className="text-sm mt-2 italic whitespace-pre-wrap">{result}</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+            <div>
+              <label className="block text-sm font-medium mb-2">Scenario</label>
+              <Input
+                placeholder="e.g., medieval fantasy, space exploration"
+                value={storyScenario}
+                onChange={(e) => setStoryScenario(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={generateStory} disabled={loading} className="w-full">
+            {loading ? 'Creating story...' : 'Generate Story'}
+          </Button>
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm font-medium">Your Generated Story:</p>
+                <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Default fallback
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>AI Assistant</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>Select an AI tool to get started!</p>
       </CardContent>
     </Card>
   );

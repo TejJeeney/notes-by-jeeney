@@ -30,14 +30,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300 overflow-auto">
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
           <ModernAppSidebar 
             selectedNote={selectedNote} 
             onSelectNote={setSelectedNote} 
           />
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-auto">
             <ModernNotesView 
               selectedNote={selectedNote} 
               onSelectNote={setSelectedNote} 
