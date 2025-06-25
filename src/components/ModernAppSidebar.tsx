@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Search, Plus, LogOut, Settings, Download, Upload, Filter, Trash2 } from 'lucide-react';
+import { Search, Plus, LogOut, Settings, Download, Upload, Filter, Trash2, FileText, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
@@ -9,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNotes } from '@/hooks/useNotes';
 import { ThemeToggleButton } from './ThemeToggleButton';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 interface ModernAppSidebarProps {
   selectedNote?: any;
@@ -63,12 +63,12 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <Sidebar className="border-r border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
-      <SidebarHeader className="p-4 sm:p-6 border-b border-slate-200/60 dark:border-slate-700/60">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:from-purple-600 hover:to-indigo-600 transition-all duration-300">
+      <SidebarHeader className="p-3 border-b border-slate-200/60 dark:border-slate-700/60">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:from-purple-600 hover:to-indigo-600 transition-all duration-300">
             PawNotes
           </h1>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <ThemeToggleButton />
             <Button
               onClick={signOut}
@@ -91,7 +91,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           />
         </div>
         
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-2">
           <Button
             onClick={handleCreateNote}
             size="sm"
@@ -111,7 +111,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </div>
 
         {/* Made with love by JEENEY */}
-        <div className="mt-4 text-center">
+        <div className="mt-3 text-center">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Made with love by{' '}
             <span className="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent font-bold animate-pulse hover:animate-bounce transition-all duration-300">
@@ -121,20 +121,20 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-4 overflow-y-auto">
+      <SidebarContent className="p-3 overflow-y-auto">
         <div className="space-y-2">
           {filteredNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => onSelectNote?.(note)}
-              className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-300 hover:scale-102 border group hover:shadow-md ${
+              className={`p-3 rounded-lg cursor-pointer transition-all duration-300 hover:scale-102 border group hover:shadow-md ${
                 selectedNote?.id === note.id
                   ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700 shadow-md scale-102'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border-transparent hover:border-slate-200 dark:hover:border-slate-600'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1 text-sm sm:text-base">
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1 text-sm">
                   {note.title}
                 </h3>
                 <div className="flex items-center gap-1 ml-2">
@@ -186,7 +186,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
+      <SidebarFooter className="p-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
         <div className="flex gap-2">
           <Button
             onClick={exportNotes}
@@ -213,6 +213,21 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
             onChange={handleImport}
             className="hidden"
           />
+        </div>
+        
+        <div className="flex gap-2">
+          <Link to="/terms" className="flex-1">
+            <Button variant="outline" size="sm" className="w-full transition-all duration-300 hover:scale-105">
+              <FileText className="w-4 h-4 mr-1" />
+              T&C
+            </Button>
+          </Link>
+          <Link to="/faq" className="flex-1">
+            <Button variant="outline" size="sm" className="w-full transition-all duration-300 hover:scale-105">
+              <HelpCircle className="w-4 h-4 mr-1" />
+              FAQ
+            </Button>
+          </Link>
         </div>
       </SidebarFooter>
     </Sidebar>
