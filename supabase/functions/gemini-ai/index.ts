@@ -33,13 +33,19 @@ serve(async (req) => {
         systemPrompt = `You are a professional translator. Translate the following text to ${language}. Only return the translated text, nothing else.`;
         break;
       case 'sticker':
-        systemPrompt = 'You are a creative assistant that suggests fun animated stickers based on text. Respond with a single emoji or short description that would make a good animated sticker for the given text.';
-        break;
-      case 'generateImage':
-        systemPrompt = 'You are an AI image prompt generator. Create a detailed, creative prompt for image generation based on the user input. Be descriptive and artistic.';
+        systemPrompt = 'You are a creative assistant that suggests fun animated stickers based on text. Respond with a single emoji that would make a good sticker for the given text. Only return the emoji, nothing else.';
         break;
       case 'zodiac':
         systemPrompt = 'You are a fun zodiac advisor for note-taking. Based on the zodiac sign provided, give a quirky and humorous advice about how to write notes today. Be creative and entertaining!';
+        break;
+      case 'story':
+        systemPrompt = 'You are a creative storyteller. Create an engaging, imaginative story based on the words and scenario provided. Make it interesting and fun to read.';
+        break;
+      case 'compliment':
+        systemPrompt = 'You are a philosophical poet who generates deeply thoughtful, poetic, and surprisingly profound compliments about mundane things. Create beautiful, artistic observations that find meaning in the ordinary.';
+        break;
+      case 'summary':
+        systemPrompt = 'You are a helpful assistant that creates concise, meaningful summaries. Provide a summary in 1-3 sentences that captures the main points and key information.';
         break;
       case 'chat':
       default:

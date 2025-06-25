@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Note } from '@/hooks/useNotes';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TagInput } from './TagInput';
 import { DrawingCanvas } from './DrawingCanvas';
-import { AIAssistant } from './ai/AIAssistant';
-import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload, Image, Bot } from 'lucide-react';
+import { Calendar, Clock, Pin, PinOff, Save, Sparkles, Brush, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +23,6 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
   const [tags, setTags] = useState(note.tags);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDrawing, setShowDrawing] = useState(false);
-  const [showAI, setShowAI] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,17 +55,18 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
 
     setIsGeneratingSummary(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-summary', {
-        body: { content, title }
+      const textToSummarize = title ? `Title: ${title}\n\nContent: ${content}` : content;
+      const { data, error } = await supabase.functions.invoke('gemini-ai', {
+        body: { prompt: textToSummarize, action: 'summary' }
       });
 
       if (error) throw error;
 
-      setSummary(data.summary);
+      setSummary(data.result);
       toast.success('Summary generated!');
     } catch (error) {
       console.error('Error generating summary:', error);
-      toast.error('Failed to generate summary. Please check if OpenAI API key is configured.');
+      toast.error('Failed to generate summary. Please check if Gemini API key is configured.');
     } finally {
       setIsGeneratingSummary(false);
     }
@@ -78,20 +78,6 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
     setContent(newContent);
     setShowDrawing(false);
     toast.success('Drawing added to note!');
-  };
-
-  const handleAIImageGenerated = (imageData: string) => {
-    const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${imageData}" alt="AI Generated Image" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">AI Generated Image</p></div>`;
-    const newContent = content + '\n\n' + imageHtml;
-    setContent(newContent);
-    toast.success('AI generated image added to note!');
-  };
-
-  const handleStickerSuggested = (sticker: string) => {
-    const stickerHtml = `<span style="font-size: 24px; margin: 0 5px;">${sticker}</span>`;
-    const newContent = content + ' ' + stickerHtml;
-    setContent(newContent);
-    toast.success('Sticker added to note!');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,29 +121,6 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
     );
   }
 
-  if (showAI) {
-    return (
-      <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            AI Assistant
-          </h2>
-          <Button
-            onClick={() => setShowAI(false)}
-            variant="outline"
-            size="sm"
-          >
-            Back to Note
-          </Button>
-        </div>
-        <AIAssistant
-          onImageGenerated={handleAIImageGenerated}
-          onStickerSuggested={handleStickerSuggested}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
       <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-4 sm:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
@@ -187,15 +150,6 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
             >
               <Brush className="w-4 h-4 mr-1" />
               Draw
-            </Button>
-            <Button
-              onClick={() => setShowAI(true)}
-              variant="outline"
-              size="sm"
-              className="transition-all duration-200 hover:scale-110 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20"
-            >
-              <Bot className="w-4 h-4 mr-1" />
-              AI Assistant
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -275,7 +229,7 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin }: ModernNote
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Start writing your note... Click 'Draw' to add sketches, 'AI Assistant' for help, 'Upload' to add files, or just type your thoughts!"
+          placeholder="Start writing your note... Click 'Draw' to add sketches, 'Upload' to add files, or just type your thoughts!"
           className="w-full h-full min-h-[300px] sm:min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
         />
       </div>
