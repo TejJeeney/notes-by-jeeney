@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { MessageSquare, Languages, BookOpen, Star, Sparkles, Heart } from 'lucide-react';
+import { MessageSquare, Languages, BookOpen, Star, Sparkles, Mic, Edit3, Coffee } from 'lucide-react';
 import { ChatInterface } from './ChatInterface';
 
 interface AIAssistantProps {
@@ -25,7 +25,19 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
   const [zodiacAdvice, setZodiacAdvice] = useState('');
   const [storyWords, setStoryWords] = useState('');
   const [storyScenario, setStoryScenario] = useState('');
-  const [complimentCategory, setComplimentCategory] = useState('');
+  
+  // Rap Mode states
+  const [rapTheme, setRapTheme] = useState('hustle');
+  const [explicitMode, setExplicitMode] = useState(false);
+  const [rapLanguage, setRapLanguage] = useState('english');
+  
+  // Ghost Editor states
+  const [ghostTone, setGhostTone] = useState('authoritative');
+  const [ghostLanguage, setGhostLanguage] = useState('english');
+  
+  // Haiku Mode states
+  const [haikuStyle, setHaikuStyle] = useState('traditional');
+  const [haikuLanguage, setHaikuLanguage] = useState('english');
 
   // Clear results when switching tools
   useEffect(() => {
@@ -34,14 +46,13 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     setZodiacAdvice('');
     setStoryWords('');
     setStoryScenario('');
-    setComplimentCategory('');
   }, [selectedTool]);
 
-  const callGeminiAI = async (text: string, action: string, lang?: string) => {
+  const callGeminiAI = async (text: string, action: string, options?: any) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
-        body: { prompt: text, action, language: lang }
+        body: { prompt: text, action, ...options }
       });
 
       if (error) throw error;
@@ -61,7 +72,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
       return;
     }
 
-    const translation = await callGeminiAI(prompt, 'translate', language);
+    const translation = await callGeminiAI(prompt, 'translate', { language });
     if (translation) {
       setResult(translation);
       toast.success('Text translated successfully!');
@@ -109,17 +120,58 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     }
   };
 
-  const generateCompliment = async () => {
-    if (!complimentCategory.trim()) {
-      toast.error('Please enter a category');
+  const generateRap = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to convert to rap');
       return;
     }
 
-    const complimentPrompt = `Generate an obscure, philosophical, poetic compliment about: ${complimentCategory}`;
-    const compliment = await callGeminiAI(complimentPrompt, 'compliment');
-    if (compliment) {
-      setResult(compliment);
-      toast.success('Obscure compliment generated!');
+    const rapPrompt = `Convert this text into rap lyrics: "${prompt}"`;
+    const rap = await callGeminiAI(rapPrompt, 'rap', {
+      theme: rapTheme,
+      explicit: explicitMode,
+      language: rapLanguage
+    });
+    
+    if (rap) {
+      setResult(rap);
+      toast.success('Rap lyrics generated!');
+    }
+  };
+
+  const generateGhostEdit = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to rewrite');
+      return;
+    }
+
+    const ghostPrompt = `Rewrite this text with a ${ghostTone} tone: "${prompt}"`;
+    const edit = await callGeminiAI(ghostPrompt, 'ghost', {
+      tone: ghostTone,
+      language: ghostLanguage
+    });
+    
+    if (edit) {
+      setResult(edit);
+      toast.success('Text rewritten successfully!');
+    }
+  };
+
+  const generateHaiku = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to convert to haiku');
+      return;
+    }
+
+    const haikuPrompt = `Convert this text into a ${haikuStyle} haiku: "${prompt}"`;
+    const haiku = await callGeminiAI(haikuPrompt, 'haiku', {
+      style: haikuStyle,
+      language: haikuLanguage
+    });
+    
+    if (haiku) {
+      setResult(haiku);
+      toast.success('Haiku generated successfully!');
     }
   };
 
@@ -140,17 +192,231 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     { code: 'zh', name: 'Chinese' }
   ];
 
+  const rapThemes = [
+    { id: 'heartbreak', name: '💔 Heartbreak', emoji: '💔' },
+    { id: 'hustle', name: '🔥 Hustle & Grind', emoji: '🔥' },
+    { id: 'empowerment', name: '👑 Self-empowerment', emoji: '👑' },
+    { id: 'money', name: '💰 Money & Power', emoji: '💰' },
+    { id: 'mythology', name: '🐉 Mythology / History', emoji: '🐉' },
+    { id: 'social', name: '🌍 Social Commentary', emoji: '🌍' },
+    { id: 'funny', name: '😂 Funny / Roast', emoji: '😂' }
+  ];
+
   // Render specific tool interface based on selectedTool
   if (selectedTool === 'chat') {
     return <ChatInterface />;
   }
 
+  if (selectedTool === 'rap') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+            Rap Mode
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Enter your text to transform into fire rap lyrics..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[100px] text-sm sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Theme</label>
+              <Select value={rapTheme} onValueChange={setRapTheme}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rapThemes.map((theme) => (
+                    <SelectItem key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={rapLanguage} onValueChange={setRapLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                  <SelectItem value="hinglish">🌍 Hinglish</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="explicit-mode"
+                checked={explicitMode}
+                onCheckedChange={setExplicitMode}
+              />
+              <label htmlFor="explicit-mode" className="text-xs sm:text-sm font-medium">
+                Explicit Mode 🔥
+              </label>
+            </div>
+          </div>
+          
+          <Button onClick={generateRap} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-sm sm:text-base">
+            {loading ? 'Cooking up bars...' : '🎤 Generate Rap Lyrics'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Your Fire Rap:</p>
+                <pre className="text-xs sm:text-sm mt-2 whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</pre>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'ghost') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            Ghost Editor
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Enter text to rewrite with AI enhancement..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[100px] text-sm sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Writing Tone</label>
+              <Select value={ghostTone} onValueChange={setGhostTone}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select tone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="authoritative">💪 Strong & Authoritative</SelectItem>
+                  <SelectItem value="poetic">🌙 Poetic & Dreamy</SelectItem>
+                  <SelectItem value="friendly">😊 Friendly & Approachable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={ghostLanguage} onValueChange={setGhostLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateGhostEdit} disabled={loading} className="w-full bg-purple-500 hover:bg-purple-600 text-sm sm:text-base">
+            {loading ? 'Enhancing text...' : '👻 Enhance with Ghost Editor'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Enhanced Text:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'haiku') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
+            Haiku Mode
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Enter your thoughts to transform into a beautiful haiku..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[100px] text-sm sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Haiku Style</label>
+              <Select value={haikuStyle} onValueChange={setHaikuStyle}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="traditional">🌸 Traditional (5-7-5)</SelectItem>
+                  <SelectItem value="freestyle">🎨 Free-style</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={haikuLanguage} onValueChange={setHaikuLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateHaiku} disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600 text-sm sm:text-base">
+            {loading ? 'Crafting haiku...' : '🌸 Generate Haiku'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Your Haiku:</p>
+                <div className="text-sm sm:text-base mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded text-center italic font-serif">
+                  {result}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (selectedTool === 'translate') {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Languages className="w-5 h-5 text-green-600" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Languages className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             Language Translator
           </CardTitle>
         </CardHeader>
@@ -159,11 +425,11 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to translate..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[100px] text-sm sm:text-base"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48 text-xs sm:text-sm">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
@@ -174,15 +440,15 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={translateText} disabled={loading} className="flex-1">
+            <Button onClick={translateText} disabled={loading} className="flex-1 text-xs sm:text-sm">
               {loading ? 'Translating...' : 'Translate'}
             </Button>
           </div>
           {result && (
             <Card>
               <CardContent className="pt-4">
-                <p className="text-sm font-medium">Translation:</p>
-                <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
+                <p className="text-xs sm:text-sm font-medium">Translation:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -193,16 +459,16 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   if (selectedTool === 'zodiac') {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Star className="w-5 h-5 text-yellow-600" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             Zodiac Insights
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Select value={zodiacSign} onValueChange={setZodiacSign}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs sm:text-sm">
               <SelectValue placeholder="Select your zodiac sign" />
             </SelectTrigger>
             <SelectContent>
@@ -213,14 +479,14 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={getZodiacAdvice} disabled={loading} className="w-full">
+          <Button onClick={getZodiacAdvice} disabled={loading} className="w-full text-xs sm:text-sm">
             {loading ? 'Consulting the stars...' : 'Get Today\'s Note Advice'}
           </Button>
           {zodiacAdvice && (
             <Card>
               <CardContent className="pt-4">
-                <p className="text-sm font-medium">Your Zodiac Note Advice:</p>
-                <p className="text-sm mt-2 italic whitespace-pre-wrap">{zodiacAdvice}</p>
+                <p className="text-xs sm:text-sm font-medium">Your Zodiac Note Advice:</p>
+                <p className="text-xs sm:text-sm mt-2 italic whitespace-pre-wrap">{zodiacAdvice}</p>
               </CardContent>
             </Card>
           )}
@@ -231,10 +497,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   if (selectedTool === 'sticker') {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Sparkles className="w-5 h-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
             Smart Stickers
           </CardTitle>
         </CardHeader>
@@ -243,16 +509,16 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Describe what you're writing about to get sticker suggestions..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[100px] text-sm sm:text-base"
           />
-          <Button onClick={getStickerSuggestion} disabled={loading} className="w-full">
+          <Button onClick={getStickerSuggestion} disabled={loading} className="w-full text-xs sm:text-sm">
             {loading ? 'Getting suggestions...' : 'Get Sticker Suggestion'}
           </Button>
           {result && (
             <Card>
               <CardContent className="pt-4">
-                <p className="text-sm font-medium">Suggested Sticker:</p>
-                <Badge variant="secondary" className="text-2xl mt-2">{result}</Badge>
+                <p className="text-xs sm:text-sm font-medium">Suggested Sticker:</p>
+                <Badge variant="secondary" className="text-lg sm:text-2xl mt-2">{result}</Badge>
               </CardContent>
             </Card>
           )}
@@ -263,40 +529,42 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   if (selectedTool === 'story') {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <BookOpen className="w-5 h-5 text-indigo-600" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
             Story Generator
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Words to Include</label>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Words to Include</label>
               <Input
                 placeholder="e.g., dragon, castle, adventure"
                 value={storyWords}
                 onChange={(e) => setStoryWords(e.target.value)}
+                className="text-xs sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Scenario</label>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Scenario</label>
               <Input
                 placeholder="e.g., medieval fantasy, space exploration"
                 value={storyScenario}
                 onChange={(e) => setStoryScenario(e.target.value)}
+                className="text-xs sm:text-sm"
               />
             </div>
           </div>
-          <Button onClick={generateStory} disabled={loading} className="w-full">
+          <Button onClick={generateStory} disabled={loading} className="w-full text-xs sm:text-sm">
             {loading ? 'Creating story...' : 'Generate Story'}
           </Button>
           {result && (
             <Card>
               <CardContent className="pt-4">
-                <p className="text-sm font-medium">Your Generated Story:</p>
-                <p className="text-sm mt-2 whitespace-pre-wrap">{result}</p>
+                <p className="text-xs sm:text-sm font-medium">Your Generated Story:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -307,12 +575,12 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   // Default fallback
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>AI Assistant</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
       </CardHeader>
       <CardContent>
-        <p>Select an AI tool to get started!</p>
+        <p className="text-sm sm:text-base">Select an AI tool to get started!</p>
       </CardContent>
     </Card>
   );

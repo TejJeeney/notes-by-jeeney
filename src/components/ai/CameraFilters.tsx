@@ -3,8 +3,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Download, FileImage, Video, StopCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Camera, Download, FileImage, Video, StopCircle, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export function CameraFilters() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -13,6 +16,9 @@ export function CameraFilters() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState('none');
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [showCaptionModal, setShowCaptionModal] = useState(false);
+  const [customCaption, setCustomCaption] = useState('');
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
 
   const filters = [
     { id: 'none', name: 'No Filter', css: 'none' },
@@ -63,7 +69,6 @@ export function CameraFilters() {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Apply filter to canvas
       const filterCSS = filters.find(f => f.id === selectedFilter)?.css || 'none';
       ctx.filter = filterCSS;
       
@@ -75,54 +80,122 @@ export function CameraFilters() {
     }
   };
 
+  const generateCaption = async () => {
+    if (!capturedImage) return;
+    
+    setIsGeneratingCaption(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-ai', {
+        body: { 
+          prompt: "Generate a short, meaningful caption for this vintage-style photograph. Make it nostalgic and memory-worthy.", 
+          action: 'caption',
+          image: capturedImage
+        }
+      });
+
+      if (error) throw error;
+      setCustomCaption(data.result);
+      toast.success('Caption generated!');
+    } catch (error) {
+      console.error('Error generating caption:', error);
+      toast.error('Failed to generate caption');
+    } finally {
+      setIsGeneratingCaption(false);
+    }
+  };
+
+  const downloadPolaroid = () => {
+    if (!capturedImage) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      const padding = 40;
+      const bottomSpace = 80;
+      canvas.width = img.width + (padding * 2);
+      canvas.height = img.height + padding + bottomSpace;
+      
+      // White polaroid background with slight shadow
+      ctx!.fillStyle = '#ffffff';
+      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add subtle shadow
+      ctx!.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx!.shadowBlur = 10;
+      ctx!.shadowOffsetX = 5;
+      ctx!.shadowOffsetY = 5;
+      
+      // Draw image
+      ctx!.drawImage(img, padding, padding);
+      
+      // Reset shadow for text
+      ctx!.shadowColor = 'transparent';
+      ctx!.shadowBlur = 0;
+      ctx!.shadowOffsetX = 0;
+      ctx!.shadowOffsetY = 0;
+      
+      // Add caption if provided
+      if (customCaption.trim()) {
+        ctx!.fillStyle = '#333333';
+        ctx!.font = '18px "Courier New", monospace';
+        ctx!.textAlign = 'center';
+        
+        // Word wrap for long captions
+        const words = customCaption.split(' ');
+        const maxWidth = canvas.width - (padding * 2);
+        let line = '';
+        let y = img.height + padding + 30;
+        
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx!.measureText(testLine);
+          const testWidth = metrics.width;
+          
+          if (testWidth > maxWidth && n > 0) {
+            ctx!.fillText(line, canvas.width / 2, y);
+            line = words[n] + ' ';
+            y += 25;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx!.fillText(line, canvas.width / 2, y);
+      }
+      
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `polaroid-${Date.now()}.png`;
+      link.click();
+      
+      setShowCaptionModal(false);
+      setCustomCaption('');
+      toast.success('Polaroid downloaded with caption!');
+    };
+    
+    img.src = capturedImage;
+  };
+
   const downloadImage = (format: 'normal' | 'polaroid') => {
     if (!capturedImage) return;
 
-    const link = document.createElement('a');
-    link.href = capturedImage;
-    link.download = `vintage-photo-${Date.now()}.png`;
-    
     if (format === 'polaroid') {
-      // Create polaroid frame effect
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.onload = () => {
-        canvas.width = img.width + 40;
-        canvas.height = img.height + 60;
-        
-        // White polaroid background
-        ctx!.fillStyle = '#ffffff';
-        ctx!.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw image with margin
-        ctx!.drawImage(img, 20, 20);
-        
-        // Add polaroid text area
-        ctx!.fillStyle = '#f5f5f5';
-        ctx!.fillRect(20, img.height + 20, img.width, 40);
-        
-        link.href = canvas.toDataURL('image/png');
-        link.download = `polaroid-${Date.now()}.png`;
-        link.click();
-      };
-      
-      img.src = capturedImage;
+      setShowCaptionModal(true);
     } else {
+      const link = document.createElement('a');
+      link.href = capturedImage;
+      link.download = `vintage-photo-${Date.now()}.png`;
       link.click();
+      toast.success('Image downloaded!');
     }
-    
-    toast.success(`Image downloaded as ${format}!`);
   };
 
   const addToNotes = () => {
     if (!capturedImage) return;
     
-    // This would integrate with the notes system
     const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${capturedImage}" alt="Vintage Photo" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">Vintage Photo with ${filters.find(f => f.id === selectedFilter)?.name} filter</p></div>`;
     
-    // Store in localStorage for now (in real app, this would integrate with the notes system)
     localStorage.setItem('pending-image', imageHtml);
     toast.success('Photo ready to add to notes! Create or open a note to add it.');
   };
@@ -136,40 +209,40 @@ export function CameraFilters() {
   }, [stream]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 p-2 sm:p-0">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="w-5 h-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
             Vintage Camera Filters
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <div className="flex flex-wrap gap-2">
             {!isStreaming ? (
-              <Button onClick={startCamera} className="bg-green-500 hover:bg-green-600">
-                <Camera className="w-4 h-4 mr-2" />
+              <Button onClick={startCamera} className="bg-green-500 hover:bg-green-600 text-xs sm:text-sm">
+                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Start Camera
               </Button>
             ) : (
-              <Button onClick={stopCamera} variant="destructive">
-                <StopCircle className="w-4 h-4 mr-2" />
+              <Button onClick={stopCamera} variant="destructive" className="text-xs sm:text-sm">
+                <StopCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Stop Camera
               </Button>
             )}
             
             {isStreaming && (
-              <Button onClick={capturePhoto} className="bg-blue-500 hover:bg-blue-600">
-                <Camera className="w-4 h-4 mr-2" />
+              <Button onClick={capturePhoto} className="bg-blue-500 hover:bg-blue-600 text-xs sm:text-sm">
+                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Capture Photo
               </Button>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Select Vintage Filter</label>
+            <label className="block text-xs sm:text-sm font-medium mb-2">Select Vintage Filter</label>
             <Select value={selectedFilter} onValueChange={setSelectedFilter}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full text-xs sm:text-sm">
                 <SelectValue placeholder="Choose a filter" />
               </SelectTrigger>
               <SelectContent>
@@ -182,9 +255,9 @@ export function CameraFilters() {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Live Preview</h3>
+              <h3 className="text-sm sm:text-lg font-semibold mb-2">Live Preview</h3>
               <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                 <video
                   ref={videoRef}
@@ -199,8 +272,8 @@ export function CameraFilters() {
                 {!isStreaming && (
                   <div className="absolute inset-0 flex items-center justify-center text-white">
                     <div className="text-center">
-                      <Camera className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="opacity-75">Click "Start Camera" to begin</p>
+                      <Camera className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+                      <p className="opacity-75 text-xs sm:text-sm">Click "Start Camera" to begin</p>
                     </div>
                   </div>
                 )}
@@ -209,7 +282,7 @@ export function CameraFilters() {
 
             {capturedImage && (
               <div>
-                <h3 className="text-lg font-semibold mb-2">Captured Photo</h3>
+                <h3 className="text-sm sm:text-lg font-semibold mb-2">Captured Photo</h3>
                 <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
                   <img
                     src={capturedImage}
@@ -218,27 +291,29 @@ export function CameraFilters() {
                   />
                 </div>
                 
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
                   <Button 
                     onClick={() => downloadImage('normal')} 
                     size="sm"
                     variant="outline"
+                    className="text-xs"
                   >
-                    <Download className="w-4 h-4 mr-1" />
+                    <Download className="w-3 h-3 mr-1" />
                     Download
                   </Button>
                   <Button 
                     onClick={() => downloadImage('polaroid')} 
                     size="sm"
                     variant="outline"
+                    className="text-xs"
                   >
-                    <FileImage className="w-4 h-4 mr-1" />
+                    <FileImage className="w-3 h-3 mr-1" />
                     Polaroid Frame
                   </Button>
                   <Button 
                     onClick={addToNotes} 
                     size="sm"
-                    className="bg-purple-500 hover:bg-purple-600"
+                    className="bg-purple-500 hover:bg-purple-600 text-xs"
                   >
                     Add to Notes
                   </Button>
@@ -248,6 +323,52 @@ export function CameraFilters() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Caption Modal for Polaroid */}
+      {showCaptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-sm sm:text-base">Add Polaroid Caption</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium mb-2">Custom Caption</label>
+                <Textarea
+                  value={customCaption}
+                  onChange={(e) => setCustomCaption(e.target.value)}
+                  placeholder="Write a caption for your memory..."
+                  className="text-xs sm:text-sm"
+                  rows={3}
+                />
+              </div>
+              
+              <Button 
+                onClick={generateCaption}
+                disabled={isGeneratingCaption}
+                variant="outline"
+                className="w-full text-xs sm:text-sm"
+              >
+                {isGeneratingCaption ? (
+                  <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <Sparkles className="w-3 h-3 mr-2" />
+                )}
+                {isGeneratingCaption ? 'Generating...' : 'Generate AI Caption'}
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button onClick={downloadPolaroid} className="flex-1 text-xs sm:text-sm">
+                  Download Polaroid
+                </Button>
+                <Button onClick={() => setShowCaptionModal(false)} variant="outline" className="text-xs sm:text-sm">
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <canvas ref={canvasRef} className="hidden" />
     </div>

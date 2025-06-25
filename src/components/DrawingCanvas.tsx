@@ -1,10 +1,9 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { X, Save, Pen, Eraser, Palette, Circle, Square, Type, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, Download, Layers } from 'lucide-react';
+import { X, Save, Pen, Eraser, Palette, Circle, Square, Type, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, Download, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
@@ -43,7 +42,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     setUndoStack(prev => [...prev, { type: 'state', data: imageData }]);
-    setRedoStack([]); // Clear redo stack when new action is performed
+    setRedoStack([]);
   };
 
   const undo = () => {
@@ -79,7 +78,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return;
     
-    saveState(); // Save state before starting to draw
+    saveState();
     
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -114,7 +113,6 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
       }
       
       if (currentTool === 'circle' || currentTool === 'square') {
-        // For shapes, we'll handle this in the draw function
         ctx.strokeStyle = currentColor;
         ctx.fillStyle = currentColor;
       } else {
@@ -135,9 +133,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       if (currentTool === 'circle' || currentTool === 'square') {
-        // Clear and redraw shape
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // We should restore the previous state here, but for simplicity, we'll just draw the shape
         if (currentTool === 'circle') {
           const radius = Math.sqrt(Math.pow(x - textPosition.x, 2) + Math.pow(y - textPosition.y, 2));
           ctx.beginPath();
@@ -254,7 +250,6 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
     link.download = `drawing-${Date.now()}.${format}`;
     
     if (format === 'svg') {
-      // For SVG, we'd need to convert canvas to SVG, which is complex
       toast.error('SVG export not implemented yet');
       return;
     }
@@ -280,24 +275,34 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
+      {/* Mobile-responsive header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 sm:p-4 border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          <Button 
+            onClick={onClose} 
+            variant="ghost" 
+            size="sm"
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:scale-110 transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-64"
+            className="flex-1 text-sm sm:text-base"
             placeholder="Drawing title..."
           />
-          <span className="text-sm text-gray-500">{zoom}%</span>
+          <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">{zoom}%</span>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleSave} size="sm" className="bg-green-500 hover:bg-green-600">
-            <Save className="w-4 h-4 mr-1" />
+        
+        <div className="flex gap-1 sm:gap-2 w-full sm:w-auto">
+          <Button onClick={handleSave} size="sm" className="bg-green-500 hover:bg-green-600 flex-1 sm:flex-none text-xs sm:text-sm">
+            <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             Save
           </Button>
           <Select onValueChange={(value: 'png' | 'jpeg') => downloadCanvas(value)}>
-            <SelectTrigger className="w-32">
-              <Download className="w-4 h-4 mr-1" />
+            <SelectTrigger className="w-20 sm:w-32 text-xs sm:text-sm">
+              <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               Export
             </SelectTrigger>
             <SelectContent>
@@ -305,74 +310,78 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
               <SelectItem value="jpeg">JPEG</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={onClose} variant="outline" size="sm">
-            <X className="w-4 h-4" />
-          </Button>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Enhanced Toolbar */}
-        <div className="w-80 bg-gray-50 dark:bg-slate-700 border-r border-gray-200 dark:border-gray-600 p-4 overflow-y-auto">
-          <div className="space-y-6">
+        {/* Mobile-responsive sidebar */}
+        <div className="w-full sm:w-64 md:w-80 bg-gray-50 dark:bg-slate-700 border-r border-gray-200 dark:border-gray-600 p-2 sm:p-4 overflow-y-auto">
+          <div className="space-y-3 sm:space-y-6">
             {/* Drawing Tools */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Drawing Tools</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm">Drawing Tools</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-4 gap-2">
+              <CardContent className="space-y-2 sm:space-y-3">
+                <div className="grid grid-cols-4 gap-1 sm:gap-2">
                   <Button
                     variant={currentTool === 'pen' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('pen')}
+                    className="h-8 sm:h-10"
                   >
-                    <Pen className="w-4 h-4" />
+                    <Pen className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant={currentTool === 'brush' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('brush')}
+                    className="h-8 sm:h-10"
                   >
-                    <Palette className="w-4 h-4" />
+                    <Palette className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant={currentTool === 'eraser' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('eraser')}
+                    className="h-8 sm:h-10"
                   >
-                    <Eraser className="w-4 h-4" />
+                    <Eraser className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant={currentTool === 'fill' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('fill')}
+                    className="h-8 sm:h-10 text-xs"
                   >
                     🪣
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1 sm:gap-2">
                   <Button
                     variant={currentTool === 'circle' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('circle')}
+                    className="h-8 sm:h-10"
                   >
-                    <Circle className="w-4 h-4" />
+                    <Circle className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant={currentTool === 'square' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('square')}
+                    className="h-8 sm:h-10"
                   >
-                    <Square className="w-4 h-4" />
+                    <Square className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant={currentTool === 'text' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentTool('text')}
+                    className="h-8 sm:h-10"
                   >
-                    <Type className="w-4 h-4" />
+                    <Type className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -380,22 +389,22 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
             {/* Brush Settings */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Brush Settings</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm">Brush Settings</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Color</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">Color</label>
                   <input
                     type="color"
                     value={currentColor}
                     onChange={(e) => setCurrentColor(e.target.value)}
-                    className="w-full h-10 rounded border cursor-pointer"
+                    className="w-full h-8 sm:h-10 rounded border cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Size: {brushSize}px</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">Size: {brushSize}px</label>
                   <Slider
                     value={[brushSize]}
                     onValueChange={([value]) => setBrushSize(value)}
@@ -407,7 +416,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Opacity: {brushOpacity}%</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">Opacity: {brushOpacity}%</label>
                   <Slider
                     value={[brushOpacity]}
                     onValueChange={([value]) => setBrushOpacity(value)}
@@ -419,9 +428,9 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Brush Type</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">Brush Type</label>
                   <Select value={brushType} onValueChange={setBrushType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-xs sm:text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -435,32 +444,32 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
             {/* Actions */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Actions</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm">Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={undo} variant="outline" size="sm" disabled={undoStack.length === 0}>
-                    <Undo className="w-4 h-4 mr-1" />
+                <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                  <Button onClick={undo} variant="outline" size="sm" disabled={undoStack.length === 0} className="text-xs">
+                    <Undo className="w-3 h-3 mr-1" />
                     Undo
                   </Button>
-                  <Button onClick={redo} variant="outline" size="sm" disabled={redoStack.length === 0}>
-                    <Redo className="w-4 h-4 mr-1" />
+                  <Button onClick={redo} variant="outline" size="sm" disabled={redoStack.length === 0} className="text-xs">
+                    <Redo className="w-3 h-3 mr-1" />
                     Redo
                   </Button>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={() => zoomCanvas('in')} variant="outline" size="sm">
-                    <ZoomIn className="w-4 h-4" />
+                <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                  <Button onClick={() => zoomCanvas('in')} variant="outline" size="sm" className="text-xs">
+                    <ZoomIn className="w-3 h-3" />
                   </Button>
-                  <Button onClick={() => zoomCanvas('out')} variant="outline" size="sm">
-                    <ZoomOut className="w-4 h-4" />
+                  <Button onClick={() => zoomCanvas('out')} variant="outline" size="sm" className="text-xs">
+                    <ZoomOut className="w-3 h-3" />
                   </Button>
                 </div>
                 
-                <Button onClick={clearCanvas} variant="destructive" size="sm" className="w-full">
-                  <RotateCcw className="w-4 h-4 mr-1" />
+                <Button onClick={clearCanvas} variant="destructive" size="sm" className="w-full text-xs">
+                  <RotateCcw className="w-3 h-3 mr-1" />
                   Clear Canvas
                 </Button>
               </CardContent>
@@ -469,7 +478,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
         </div>
         
         {/* Canvas Area */}
-        <div className="flex-1 p-4 overflow-auto">
+        <div className="flex-1 p-2 sm:p-4 overflow-auto">
           <div 
             className="mx-auto border border-gray-300 dark:border-gray-600 bg-white shadow-lg"
             style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
@@ -478,7 +487,7 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
               ref={canvasRef}
               width={800}
               height={600}
-              className="cursor-crosshair"
+              className="cursor-crosshair max-w-full h-auto"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -490,10 +499,10 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
       {/* Text Input Modal */}
       {showTextInput && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-96">
             <CardHeader>
-              <CardTitle>Add Text</CardTitle>
+              <CardTitle className="text-sm sm:text-base">Add Text</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
@@ -501,10 +510,11 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="Enter text..."
                 autoFocus
+                className="text-sm sm:text-base"
               />
               <div className="flex gap-2">
-                <Button onClick={addText} className="flex-1">Add Text</Button>
-                <Button onClick={() => setShowTextInput(false)} variant="outline">Cancel</Button>
+                <Button onClick={addText} className="flex-1 text-xs sm:text-sm">Add Text</Button>
+                <Button onClick={() => setShowTextInput(false)} variant="outline" className="text-xs sm:text-sm">Cancel</Button>
               </div>
             </CardContent>
           </Card>

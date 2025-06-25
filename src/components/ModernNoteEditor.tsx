@@ -129,34 +129,34 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: Mo
 
   return (
     <div className="h-full flex flex-col bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm overflow-auto">
-      <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-4 sm:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="border-b border-slate-200/60 dark:border-slate-700/60 p-2 sm:p-4 md:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 gap-2 lg:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full lg:w-auto">
             {onBack && (
               <Button 
                 onClick={onBack}
                 variant="ghost"
                 size="sm"
-                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:scale-110 transition-all duration-200"
+                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:scale-110 transition-all duration-200 flex-shrink-0"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             )}
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Note title..."
-              className="text-xl sm:text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1 min-w-0"
+              className="text-base sm:text-xl md:text-2xl font-bold border-none p-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1 min-w-0"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 w-full lg:w-auto">
             {hasChanges && (
               <Button 
                 onClick={handleSave}
                 size="sm"
-                className="bg-green-500 hover:bg-green-600 text-white transition-all duration-200 hover:scale-105"
+                className="bg-green-500 hover:bg-green-600 text-white transition-all duration-200 hover:scale-105 text-xs sm:text-sm"
               >
-                <Save className="w-4 h-4 mr-1" />
+                <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 Save
               </Button>
             )}
@@ -164,18 +164,18 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: Mo
               onClick={() => setShowDrawing(true)}
               variant="outline"
               size="sm"
-              className="transition-all duration-200 hover:scale-110"
+              className="transition-all duration-200 hover:scale-110 text-xs sm:text-sm"
             >
-              <Brush className="w-4 h-4 mr-1" />
+              <Brush className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               Draw
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
               variant="outline"
               size="sm"
-              className="transition-all duration-200 hover:scale-110"
+              className="transition-all duration-200 hover:scale-110 text-xs sm:text-sm"
             >
-              <Upload className="w-4 h-4 mr-1" />
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               Upload
             </Button>
             <Button
@@ -183,12 +183,12 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: Mo
               disabled={isGeneratingSummary}
               variant="outline"
               size="sm"
-              className="transition-all duration-200 hover:scale-110"
+              className="transition-all duration-200 hover:scale-110 text-xs sm:text-sm"
             >
               {isGeneratingSummary ? (
-                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Sparkles className="w-4 h-4 mr-1" />
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               )}
               {isGeneratingSummary ? 'Generating...' : 'AI Summary'}
             </Button>
@@ -196,28 +196,28 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: Mo
               onClick={() => onTogglePin(note.id)}
               variant="ghost"
               size="sm"
-              className={`transition-all duration-200 hover:scale-110 ${
+              className={`transition-all duration-200 hover:scale-110 text-xs sm:text-sm ${
                 note.is_pinned 
                   ? 'text-amber-600 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20' 
                   : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
               }`}
             >
-              {note.is_pinned ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
+              {note.is_pinned ? <Pin className="w-3 h-3 sm:w-4 sm:h-4" /> : <PinOff className="w-3 h-3 sm:w-4 sm:h-4" />}
             </Button>
           </div>
         </div>
         
         {summary && (
-          <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700 animate-fade-in">
+          <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700 animate-fade-in">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="font-semibold text-indigo-800 dark:text-indigo-200">AI Summary</span>
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="font-semibold text-indigo-800 dark:text-indigo-200 text-xs sm:text-sm">AI Summary</span>
             </div>
-            <p className="text-indigo-700 dark:text-indigo-300 text-sm leading-relaxed">{summary}</p>
+            <p className="text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm leading-relaxed">{summary}</p>
           </div>
         )}
         
-        <div className="mb-4">
+        <div className="mb-3 sm:mb-4">
           <TagInput 
             tags={tags} 
             onTagsChange={setTags}
@@ -225,30 +225,30 @@ export function ModernNoteEditor({ note, onUpdateNote, onTogglePin, onBack }: Mo
           />
         </div>
         
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Created: {formatDateTime(note.created_at)}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Updated: {formatDateTime(note.updated_at)}</span>
           </div>
           {note.is_pinned && (
-            <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-              <Pin className="w-3 h-3 mr-1" />
+            <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs">
+              <Pin className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
               Pinned
             </Badge>
           )}
         </div>
       </div>
       
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 p-2 sm:p-4 md:p-6">
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Start writing your note... Click 'Draw' to add sketches, 'Upload' to add files, or just type your thoughts!"
-          className="w-full h-full min-h-[300px] sm:min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base"
+          className="w-full h-full min-h-[200px] sm:min-h-[300px] md:min-h-[500px] border-none bg-transparent resize-none focus:ring-0 focus:outline-none text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm sm:text-base"
         />
       </div>
 
