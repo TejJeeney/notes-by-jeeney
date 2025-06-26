@@ -154,8 +154,8 @@ export function ModernWelcome() {
 
   return (
     <div className="h-full overflow-auto p-2 sm:p-4 md:p-6 bg-gradient-to-br from-white/60 via-blue-50/60 to-indigo-100/60 dark:from-slate-800/60 dark:via-slate-700/60 dark:to-slate-900/60 backdrop-blur-sm">
-      <div className="max-w-7xl w-full mx-auto space-y-6 sm:space-y-8 md:space-y-12">
-        <div className="text-center animate-fade-in">
+      <div className="max-w-7xl w-full mx-auto">
+        <div className="text-center mb-6 sm:mb-8 md:mb-12 animate-fade-in">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-slate-800 dark:text-slate-100 mb-2 sm:mb-4 tracking-tight">
             Welcome to{' '}
             <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:shadow-2xl hover:drop-shadow-[0_0_20px_rgba(139,69,255,0.3)] transition-all duration-500 cursor-pointer">
@@ -168,7 +168,7 @@ export function ModernWelcome() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 px-1 sm:px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8 px-1 sm:px-2">
           {aiFeatures.map((feature, index) => (
             <Card 
               key={index} 
