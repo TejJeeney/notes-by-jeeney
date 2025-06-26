@@ -6,11 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Camera, Upload, Download, Copy, Check, Sparkles } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-interface CameraFiltersProps {
-  selectedTool: string;
-}
-
-export function CameraFilters({ selectedTool }: CameraFiltersProps) {
+export function CameraFilters() {
   const [image, setImage] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,7 +32,7 @@ export function CameraFilters({ selectedTool }: CameraFiltersProps) {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaServices.getUserMedia({ video: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
