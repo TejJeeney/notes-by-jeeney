@@ -29,19 +29,22 @@ serve(async (req) => {
     let userPrompt = prompt;
 
     switch (action) {
-      case 'translate':
+      case 'translate': {
         systemPrompt = `You are a professional translator. Translate the following text to ${language}. Only return the translated text, nothing else.`;
         break;
+      }
         
-      case 'sticker':
+      case 'sticker': {
         systemPrompt = 'You are a creative assistant that suggests fun animated stickers based on text. Look at the content and context of the text to suggest the perfect emoji sticker. Consider emotions, activities, objects, and themes mentioned. Return only a single emoji that would make a great sticker for this content.';
         break;
+      }
         
-      case 'zodiac':
+      case 'zodiac': {
         systemPrompt = 'You are a positive zodiac advisor. Based on the zodiac sign provided, give ONLY positive, uplifting, and motivating predictions. Focus on opportunities, good fortune, positive energy, and encouraging messages. Never mention negative aspects, challenges, or warnings. Make it inspiring and optimistic!';
         break;
+      }
         
-      case 'story':
+      case 'story': {
         const storyOptions = options || {};
         const {
           storyLength = 'medium',
@@ -78,8 +81,9 @@ Story Parameters:
 
 Create a compelling narrative that incorporates all these elements naturally. Make it engaging and well-structured.`;
         break;
+      }
         
-      case 'rap':
+      case 'rap': {
         const rapOptions = options || {};
         const {
           theme = 'hustle',
@@ -124,8 +128,9 @@ ${explicit ? '- Use explicit, gritty language where appropriate' : '- Keep langu
 
 Return only the rap lyrics, formatted as verses.`;
         break;
+      }
         
-      case 'ghost':
+      case 'ghost': {
         const ghostOptions = options || {};
         const { tone: ghostTone = 'authoritative', language: ghostLang = 'english' } = ghostOptions;
         
@@ -143,14 +148,15 @@ Requirements:
 
 Return the rewritten text as clean, editable paragraphs.`;
         break;
+      }
         
-      case 'haiku':
+      case 'haiku': {
         const haikuOptions = options || {};
-        const { style = 'traditional', language: haikuLang = 'english' } = haikuOptions;
+        const { style: haikuStyle = 'traditional', language: haikuLang = 'english' } = haikuOptions;
         
-        systemPrompt = `You are a master poet specializing in haiku. Transform the user's text into a beautiful ${style} haiku.
+        systemPrompt = `You are a master poet specializing in haiku. Transform the user's text into a beautiful ${haikuStyle} haiku.
 
-Style: ${style === 'traditional' ? '5-7-5 syllable structure' : 'free-form haiku structure'}
+Style: ${haikuStyle === 'traditional' ? '5-7-5 syllable structure' : 'free-form haiku structure'}
 Language: ${haikuLang === 'hindi' ? 'Hindi with Devanagari script' : 'English'}
 
 Requirements:
@@ -162,8 +168,9 @@ Requirements:
 
 Return only the haiku, beautifully formatted.`;
         break;
+      }
         
-      case 'humanize':
+      case 'humanize': {
         const humanizeOptions = options || {};
         const {
           tone: humanTone = 'friendly',
@@ -198,13 +205,14 @@ ${humor !== 'off' ? '- Add appropriate humor' : ''}
 
 Return rewritten text that sounds genuinely human.`;
         break;
+      }
         
-      case 'character':
+      case 'character': {
         const characterOptions = options || {};
-        const { character = 'shakespeare', language: charLang = 'english' } = characterOptions;
+        const { character: charType = 'shakespeare', language: charLang = 'english' } = characterOptions;
         
         let characterDesc = '';
-        switch (character) {
+        switch (charType) {
           case 'shakespeare': characterDesc = 'Shakespearean poet with eloquent, dramatic flair'; break;
           case 'alien': characterDesc = 'alien from the future with advanced perspective'; break;
           case 'teacher': characterDesc = 'stern but caring teacher explaining concepts'; break;
@@ -214,7 +222,7 @@ Return rewritten text that sounds genuinely human.`;
         
         systemPrompt = `You are rewriting text from the perspective of a ${characterDesc}. Maintain their unique voice, speaking style, and personality.
 
-Character: ${character}
+Character: ${charType}
 Language: ${charLang === 'hindi' ? 'Hindi with Devanagari script' : 'English'}
 
 Requirements:
@@ -226,8 +234,9 @@ Requirements:
 
 Rewrite the user's text as if this character is speaking.`;
         break;
+      }
         
-      case 'gamification':
+      case 'gamification': {
         const gameOptions = options || {};
         const { gameStyle = 'quest', language: gameLang = 'english' } = gameOptions;
         
@@ -246,8 +255,9 @@ Requirements:
 
 Rewrite the user's text as an engaging game scenario.`;
         break;
+      }
         
-      case 'mythology':
+      case 'mythology': {
         const mythOptions = options || {};
         const { mythStyle = 'mahabharata', language: mythLang = 'english' } = mythOptions;
         
@@ -274,18 +284,23 @@ Requirements:
 
 Rewrite the user's text as a mythological tale.`;
         break;
+      }
         
-      case 'compliment':
+      case 'compliment': {
         systemPrompt = 'You are a philosophical poet who generates deeply thoughtful, poetic, and surprisingly profound compliments about mundane things. Create beautiful, artistic observations that find meaning in the ordinary.';
         break;
+      }
         
-      case 'summary':
+      case 'summary': {
         systemPrompt = 'You are a helpful assistant that creates concise, meaningful summaries. Provide a summary in 1-3 sentences that captures the main points and key information.';
         break;
+      }
         
       case 'chat':
-      default:
+      default: {
         systemPrompt = 'You are JEENEY, a helpful and friendly AI assistant for a note-taking app called PawNotes. You are fun, engaging, and supportive. Help users with their notes, provide suggestions, and be encouraging and positive in all interactions.';
+        break;
+      }
     }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
