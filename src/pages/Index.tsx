@@ -5,11 +5,13 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { ModernAppSidebar } from "@/components/ModernAppSidebar";
 import { ModernNotesView } from "@/components/ModernNotesView";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [selectedNote, setSelectedNote] = useState<any>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -20,7 +22,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 sm:h-24 sm:w-24 md:h-32 md:w-32 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -30,12 +32,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300 overflow-auto">
-      <SidebarProvider>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300 overflow-hidden">
+      <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex w-full min-h-screen">
           <ModernAppSidebar />
-          <main className="flex-1 overflow-auto">
-            <ModernNotesView />
+          <main className="flex-1 overflow-hidden">
+            <div className="h-screen overflow-auto">
+              <ModernNotesView />
+            </div>
           </main>
         </div>
       </SidebarProvider>

@@ -38,11 +38,45 @@ serve(async (req) => {
         break;
         
       case 'zodiac':
-        systemPrompt = 'You are a fun zodiac advisor for note-taking. Based on the zodiac sign provided, give a quirky and humorous advice about how to write notes today. Be creative and entertaining!';
+        systemPrompt = 'You are a positive zodiac advisor. Based on the zodiac sign provided, give ONLY positive, uplifting, and motivating predictions. Focus on opportunities, good fortune, positive energy, and encouraging messages. Never mention negative aspects, challenges, or warnings. Make it inspiring and optimistic!';
         break;
         
       case 'story':
-        systemPrompt = 'You are a creative storyteller. Create an engaging, imaginative story based on the words and scenario provided. Make it interesting and fun to read.';
+        const storyOptions = options || {};
+        const {
+          storyLength = 'medium',
+          tone = 'friendly',
+          genre = 'fantasy',
+          style = 'casual',
+          character = 'heroic',
+          perspective = 'third-person',
+          pacing = 'balanced',
+          theme = 'adventure',
+          setting = 'fantasy'
+        } = storyOptions;
+
+        let lengthInstruction = '';
+        switch (storyLength) {
+          case 'short': lengthInstruction = 'Write a short, concise story (under 500 words).'; break;
+          case 'medium': lengthInstruction = 'Write a medium-length story (500-1500 words).'; break;
+          case 'expanded': lengthInstruction = 'Write a longer, detailed story (1500+ words).'; break;
+          case 'random': lengthInstruction = 'Write a story of random length based on what feels right for the content.'; break;
+        }
+
+        systemPrompt = `You are a creative storyteller. Create an engaging story based on the provided words and scenario.
+
+Story Parameters:
+- Length: ${lengthInstruction}
+- Tone: ${tone}
+- Genre: ${genre}
+- Style: ${style}
+- Character Type: ${character}
+- Perspective: ${perspective}
+- Pacing: ${pacing}
+- Theme: ${theme}
+- Setting: ${setting}
+
+Create a compelling narrative that incorporates all these elements naturally. Make it engaging and well-structured.`;
         break;
         
       case 'rap':
@@ -56,7 +90,7 @@ serve(async (req) => {
           tone = 'confident',
           profanity = 'mild',
           complexity = 'intermediate',
-          length = '8 bars',
+          rapLength = '8 bars',
           cultural = 'western'
         } = rapOptions;
 
@@ -76,7 +110,7 @@ Flow: ${flow}
 Tone: ${tone}
 Profanity Level: ${profanity}
 Complexity: ${complexity}
-Length: ${length}
+Length: ${rapLength}
 Cultural References: ${cultureRef}
 
 Requirements:
@@ -138,7 +172,7 @@ Return only the haiku, beautifully formatted.`;
           empathy = 'medium',
           humor = 'off',
           language: humanLang = 'english',
-          length = 'medium'
+          outputLength = 'medium'
         } = humanizeOptions;
         
         systemPrompt = `You are an expert at making text sound natural and human. Rewrite the user's text to sound like a real person wrote it.
@@ -150,7 +184,7 @@ Settings:
 - Empathy Level: ${empathy}
 - Humor: ${humor}
 - Language: ${humanLang === 'hindi' ? 'Hindi with Devanagari script' : humanLang === 'hinglish' ? 'Hinglish mix' : 'English'}
-- Length: ${length}
+- Output Length: ${outputLength}
 
 Requirements:
 - Make it sound conversational and natural
@@ -251,7 +285,7 @@ Rewrite the user's text as a mythological tale.`;
         
       case 'chat':
       default:
-        systemPrompt = 'You are a helpful AI assistant for a note-taking app called PawNotes. Help users with their notes, provide suggestions, and be friendly and encouraging.';
+        systemPrompt = 'You are JEENEY, a helpful and friendly AI assistant for a note-taking app called PawNotes. You are fun, engaging, and supportive. Help users with their notes, provide suggestions, and be encouraging and positive in all interactions.';
     }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {

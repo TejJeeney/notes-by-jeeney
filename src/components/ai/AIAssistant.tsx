@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { MessageSquare, Languages, BookOpen, Star, Sparkles, Mic, Edit3, Coffee, Users, Gamepad2, Crown } from 'lucide-react';
+import { MessageSquare, Languages, BookOpen, Star, Sparkles, Mic, Edit3, Coffee, Users, Gamepad2, Crown, Shuffle } from 'lucide-react';
 import { ChatInterface } from './ChatInterface';
 
 interface AIAssistantProps {
@@ -26,6 +26,17 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
   const [zodiacAdvice, setZodiacAdvice] = useState('');
   const [storyWords, setStoryWords] = useState('');
   const [storyScenario, setStoryScenario] = useState('');
+  
+  // Story Generator enhanced states
+  const [storyLength, setStoryLength] = useState('medium');
+  const [storyTone, setStoryTone] = useState('friendly');
+  const [storyGenre, setStoryGenre] = useState('fantasy');
+  const [storyStyle, setStoryStyle] = useState('casual');
+  const [storyCharacter, setStoryCharacter] = useState('heroic');
+  const [storyPerspective, setStoryPerspective] = useState('third-person');
+  const [storyPacing, setStoryPacing] = useState('balanced');
+  const [storyTheme, setStoryTheme] = useState('adventure');
+  const [storySetting, setStorySetting] = useState('fantasy');
   
   // Rap Mode states
   const [rapTheme, setRapTheme] = useState('hustle');
@@ -95,6 +106,30 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     }
   };
 
+  const randomizeStorySettings = () => {
+    const lengths = ['short', 'medium', 'expanded'];
+    const tones = ['friendly', 'brutal', 'romantic', 'adventurous', 'mysterious', 'humorous', 'dark', 'optimistic', 'cynical'];
+    const genres = ['fantasy', 'sci-fi', 'mystery', 'historical', 'horror', 'drama', 'fairytale', 'slice-of-life'];
+    const styles = ['formal', 'casual', 'poetic', 'minimalistic', 'descriptive', 'dialogue-heavy'];
+    const characters = ['heroic', 'villainous', 'anti-hero', 'relatable', 'unlikely-hero'];
+    const perspectives = ['first-person', 'second-person', 'third-limited', 'third-omniscient'];
+    const pacings = ['fast-paced', 'slow-burn', 'balanced'];
+    const themes = ['coming-of-age', 'love', 'justice', 'survival', 'betrayal', 'revenge'];
+    const settings = ['urban', 'rural', 'fantasy', 'dystopian', 'historical', 'surreal'];
+    
+    setStoryLength(lengths[Math.floor(Math.random() * lengths.length)]);
+    setStoryTone(tones[Math.floor(Math.random() * tones.length)]);
+    setStoryGenre(genres[Math.floor(Math.random() * genres.length)]);
+    setStoryStyle(styles[Math.floor(Math.random() * styles.length)]);
+    setStoryCharacter(characters[Math.floor(Math.random() * characters.length)]);
+    setStoryPerspective(perspectives[Math.floor(Math.random() * perspectives.length)]);
+    setStoryPacing(pacings[Math.floor(Math.random() * pacings.length)]);
+    setStoryTheme(themes[Math.floor(Math.random() * themes.length)]);
+    setStorySetting(settings[Math.floor(Math.random() * settings.length)]);
+    
+    toast.success('Story settings randomized!');
+  };
+
   const translateText = async () => {
     if (!prompt.trim()) {
       toast.error('Please enter text to translate');
@@ -131,7 +166,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     const advice = await callGeminiAI(zodiacSign, 'zodiac');
     if (advice) {
       setZodiacAdvice(advice);
-      toast.success('Your zodiac note advice is ready!');
+      toast.success('Your positive zodiac energy is ready!');
     }
   };
 
@@ -142,7 +177,17 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     }
 
     const storyPrompt = `Create a story using these words: ${storyWords} in this scenario: ${storyScenario}`;
-    const story = await callGeminiAI(storyPrompt, 'story');
+    const story = await callGeminiAI(storyPrompt, 'story', {
+      storyLength,
+      tone: storyTone,
+      genre: storyGenre,
+      style: storyStyle,
+      character: storyCharacter,
+      perspective: storyPerspective,
+      pacing: storyPacing,
+      theme: storyTheme,
+      setting: storySetting
+    });
     if (story) {
       setResult(story);
       toast.success('Story generated successfully!');
@@ -312,6 +357,222 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     return <ChatInterface />;
   }
 
+  if (selectedTool === 'story') {
+    return (
+      <Card className="w-full max-w-6xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+            Advanced Story Generator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Words to Include</label>
+              <Input
+                placeholder="e.g., dragon, castle, adventure"
+                value={storyWords}
+                onChange={(e) => setStoryWords(e.target.value)}
+                className="text-xs sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Scenario</label>
+              <Input
+                placeholder="e.g., medieval fantasy, space exploration"
+                value={storyScenario}
+                onChange={(e) => setStoryScenario(e.target.value)}
+                className="text-xs sm:text-sm"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+            <h3 className="text-sm sm:text-base font-semibold">Story Settings</h3>
+            <Button 
+              onClick={randomizeStorySettings} 
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+            >
+              <Shuffle className="w-3 h-3 sm:w-4 sm:h-4" />
+              Randomize All
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Length</label>
+              <Select value={storyLength} onValueChange={setStoryLength}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="short">📝 Short (under 500 words)</SelectItem>
+                  <SelectItem value="medium">📖 Medium (500-1500 words)</SelectItem>
+                  <SelectItem value="expanded">📚 Expanded (1500+ words)</SelectItem>
+                  <SelectItem value="random">🎲 Random Length</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Tone/Emotion</label>
+              <Select value={storyTone} onValueChange={setStoryTone}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="friendly">😊 Friendly</SelectItem>
+                  <SelectItem value="brutal">⚔️ Brutal</SelectItem>
+                  <SelectItem value="romantic">💕 Romantic</SelectItem>
+                  <SelectItem value="adventurous">🏃 Adventurous</SelectItem>
+                  <SelectItem value="mysterious">🔍 Mysterious</SelectItem>
+                  <SelectItem value="humorous">😂 Humorous</SelectItem>
+                  <SelectItem value="dark">🌑 Dark</SelectItem>
+                  <SelectItem value="optimistic">🌟 Optimistic</SelectItem>
+                  <SelectItem value="cynical">🤨 Cynical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Genre</label>
+              <Select value={storyGenre} onValueChange={setStoryGenre}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fantasy">🧙 Fantasy</SelectItem>
+                  <SelectItem value="sci-fi">🚀 Sci-Fi</SelectItem>
+                  <SelectItem value="mystery">🔍 Mystery/Thriller</SelectItem>
+                  <SelectItem value="historical">📜 Historical Fiction</SelectItem>
+                  <SelectItem value="horror">👻 Horror</SelectItem>
+                  <SelectItem value="drama">🎭 Drama</SelectItem>
+                  <SelectItem value="fairytale">🏰 Fairy Tale</SelectItem>
+                  <SelectItem value="slice-of-life">☕ Slice of Life</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Style</label>
+              <Select value={storyStyle} onValueChange={setStoryStyle}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="formal">🎩 Formal</SelectItem>
+                  <SelectItem value="casual">👕 Casual</SelectItem>
+                  <SelectItem value="poetic">🌸 Poetic</SelectItem>
+                  <SelectItem value="minimalistic">⚪ Minimalistic</SelectItem>
+                  <SelectItem value="descriptive">🖼️ Descriptive</SelectItem>
+                  <SelectItem value="dialogue-heavy">💬 Dialogue-heavy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Character Type</label>
+              <Select value={storyCharacter} onValueChange={setStoryCharacter}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="heroic">🦸 Heroic</SelectItem>
+                  <SelectItem value="villainous">🦹 Villainous</SelectItem>
+                  <SelectItem value="anti-hero">😈 Anti-Hero</SelectItem>
+                  <SelectItem value="relatable">👤 Relatable</SelectItem>
+                  <SelectItem value="unlikely-hero">🤔 Unlikely Hero</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Perspective</label>
+              <Select value={storyPerspective} onValueChange={setStoryPerspective}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="first-person">👁️ First Person</SelectItem>
+                  <SelectItem value="second-person">👆 Second Person</SelectItem>
+                  <SelectItem value="third-limited">👁️‍🗨️ Third Person Limited</SelectItem>
+                  <SelectItem value="third-omniscient">🔮 Third Person Omniscient</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Pacing</label>
+              <Select value={storyPacing} onValueChange={setStoryPacing}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fast-paced">⚡ Fast-paced</SelectItem>
+                  <SelectItem value="slow-burn">🔥 Slow Burn</SelectItem>
+                  <SelectItem value="balanced">⚖️ Balanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Theme</label>
+              <Select value={storyTheme} onValueChange={setStoryTheme}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="adventure">🗺️ Adventure</SelectItem>
+                  <SelectItem value="coming-of-age">🌱 Coming-of-age</SelectItem>
+                  <SelectItem value="love">💖 Love/Heartbreak</SelectItem>
+                  <SelectItem value="justice">⚖️ Justice</SelectItem>
+                  <SelectItem value="survival">🏕️ Survival</SelectItem>
+                  <SelectItem value="betrayal">🗡️ Betrayal</SelectItem>
+                  <SelectItem value="revenge">💀 Revenge</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Setting</label>
+              <Select value={storySetting} onValueChange={setStorySetting}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="urban">🏙️ Urban</SelectItem>
+                  <SelectItem value="rural">🌾 Rural</SelectItem>
+                  <SelectItem value="fantasy">🏰 Fantasy World</SelectItem>
+                  <SelectItem value="dystopian">🌆 Dystopian</SelectItem>
+                  <SelectItem value="historical">📜 Historical</SelectItem>
+                  <SelectItem value="surreal">🌀 Surreal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateStory} disabled={loading} className="w-full bg-indigo-500 hover:bg-indigo-600 text-sm sm:text-base">
+            {loading ? 'Creating story...' : '📚 Generate Advanced Story'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Your Generated Story:</p>
+                <div className="text-xs sm:text-sm mt-2 whitespace-pre-wrap max-h-96 overflow-y-auto bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                  {result}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (selectedTool === 'rap') {
     return (
       <Card className="w-full max-w-6xl mx-auto">
@@ -321,15 +582,15 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             Advanced Rap Mode
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6">
           <Textarea
             placeholder="Enter your text to transform into fire rap lyrics..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Theme</label>
               <Select value={rapTheme} onValueChange={setRapTheme}>
@@ -422,7 +683,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Profanity Level</label>
               <Select value={profanityLevel} onValueChange={setProfanityLevel}>
@@ -454,7 +715,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             </div>
           </div>
           
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center space-x-2">
               <Switch
                 id="explicit-mode"
@@ -479,7 +740,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Your Fire Rap:</p>
-                <pre className="text-xs sm:text-sm mt-2 whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</pre>
+                <pre className="text-xs sm:text-sm mt-2 whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</pre>
               </CardContent>
             </Card>
           )}
@@ -502,10 +763,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to transform from a character's perspective..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Character</label>
               <Select value={selectedCharacter} onValueChange={setSelectedCharacter}>
@@ -544,7 +805,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Character Transformation:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -567,10 +828,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to transform into an exciting game scenario..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Game Style</label>
               <Select value={gameStyle} onValueChange={setGameStyle}>
@@ -608,7 +869,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Game Scenario:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -631,10 +892,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to transform into an epic mythological tale..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Mythology Style</label>
               <Select value={mythStyle} onValueChange={setMythStyle}>
@@ -672,7 +933,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Mythological Tale:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -695,10 +956,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to rewrite with AI enhancement..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Writing Tone</label>
               <Select value={ghostTone} onValueChange={setGhostTone}>
@@ -735,7 +996,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Enhanced Text:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -758,10 +1019,10 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter your thoughts to transform into a beautiful haiku..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2">Haiku Style</label>
               <Select value={haikuStyle} onValueChange={setHaikuStyle}>
@@ -822,7 +1083,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Enter text to translate..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           <div className="flex flex-col sm:flex-row gap-2">
             <Select value={language} onValueChange={setLanguage}>
@@ -845,7 +1106,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Translation:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap">{result}</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">{result}</p>
               </CardContent>
             </Card>
           )}
@@ -860,7 +1121,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
-            Zodiac Insights
+            Zodiac Positive Energy
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -877,13 +1138,13 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             </SelectContent>
           </Select>
           <Button onClick={getZodiacAdvice} disabled={loading} className="w-full text-xs sm:text-sm">
-            {loading ? 'Consulting the stars...' : 'Get Today\'s Note Advice'}
+            {loading ? 'Channeling positive energy...' : '✨ Get Your Positive Zodiac Energy'}
           </Button>
           {zodiacAdvice && (
             <Card>
               <CardContent className="pt-4">
-                <p className="text-xs sm:text-sm font-medium">Your Zodiac Note Advice:</p>
-                <p className="text-xs sm:text-sm mt-2 italic whitespace-pre-wrap">{zodiacAdvice}</p>
+                <p className="text-xs sm:text-sm font-medium">Your Positive Zodiac Energy:</p>
+                <p className="text-xs sm:text-sm mt-2 italic whitespace-pre-wrap bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-3 rounded">{zodiacAdvice}</p>
               </CardContent>
             </Card>
           )}
@@ -906,7 +1167,7 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             placeholder="Describe what you're writing about to get sticker suggestions..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
           />
           <Button onClick={getStickerSuggestion} disabled={loading} className="w-full text-xs sm:text-sm">
             {loading ? 'Getting suggestions...' : 'Get Sticker Suggestion'}
@@ -916,52 +1177,6 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Suggested Sticker:</p>
                 <Badge variant="secondary" className="text-lg sm:text-2xl mt-2">{result}</Badge>
-              </CardContent>
-            </Card>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (selectedTool === 'story') {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
-            Story Generator
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Words to Include</label>
-              <Input
-                placeholder="e.g., dragon, castle, adventure"
-                value={storyWords}
-                onChange={(e) => setStoryWords(e.target.value)}
-                className="text-xs sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Scenario</label>
-              <Input
-                placeholder="e.g., medieval fantasy, space exploration"
-                value={storyScenario}
-                onChange={(e) => setStoryScenario(e.target.value)}
-                className="text-xs sm:text-sm"
-              />
-            </div>
-          </div>
-          <Button onClick={generateStory} disabled={loading} className="w-full text-xs sm:text-sm">
-            {loading ? 'Creating story...' : 'Generate Story'}
-          </Button>
-          {result && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs sm:text-sm font-medium">Your Generated Story:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap">{result}</p>
               </CardContent>
             </Card>
           )}

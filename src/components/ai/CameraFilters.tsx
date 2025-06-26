@@ -1,375 +1,338 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, Download, FileImage, Video, StopCircle, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Camera, Download, Sparkles, Type } from 'lucide-react';
 
 export function CameraFilters() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [filter, setFilter] = useState('vintage');
+  const [captionText, setCaptionText] = useState('');
+  const [captionFont, setCaptionFont] = useState('handwriting');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState('none');
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [showCaptionModal, setShowCaptionModal] = useState(false);
-  const [customCaption, setCustomCaption] = useState('');
-  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
 
   const filters = [
-    { id: 'none', name: 'No Filter', css: 'none' },
-    { id: 'polaroid', name: 'Polaroid Effect', css: 'sepia(0.5) contrast(1.2) brightness(1.1) saturate(1.3)' },
-    { id: 'disposable', name: 'Disposable Camera', css: 'contrast(1.3) brightness(1.2) saturate(0.8) hue-rotate(10deg)' },
-    { id: 'vintage', name: 'Old Photo Effect', css: 'sepia(0.8) contrast(1.1) brightness(1.1) saturate(0.7)' },
-    { id: 'ccd', name: 'CCD Effect', css: 'contrast(1.4) brightness(0.9) saturate(1.2) hue-rotate(-10deg)' },
-    { id: 'chromatic', name: 'Chromatic Effect', css: 'hue-rotate(90deg) saturate(1.5) contrast(1.2)' },
-    { id: 'grain', name: 'Film Grain', css: 'contrast(1.2) brightness(0.95) grayscale(0.1) opacity(0.9)' },
+    { id: 'vintage', name: '📷 Vintage Sepia', css: 'sepia(100%) contrast(120%) brightness(90%)' },
+    { id: 'retro', name: '🌈 Retro Film', css: 'saturate(150%) hue-rotate(10deg) contrast(110%)' },
+    { id: 'blackwhite', name: '⚫ Black & White', css: 'grayscale(100%) contrast(120%)' },
+    { id: 'warm', name: '🔥 Warm Tone', css: 'sepia(30%) saturate(130%) brightness(105%)' },
+    { id: 'cool', name: '❄️ Cool Tone', css: 'hue-rotate(180deg) saturate(120%) brightness(95%)' },
+    { id: 'faded', name: '🌫️ Faded Film', css: 'opacity(85%) saturate(80%) brightness(110%)' }
   ];
 
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' }, 
-        audio: false 
-      });
-      setStream(mediaStream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        setIsStreaming(true);
-        toast.success('Camera started successfully!');
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera. Please allow camera permissions.');
+  const fonts = [
+    { id: 'handwriting', name: '✍️ Handwriting', css: '"Kalam", cursive' },
+    { id: 'typewriter', name: '⌨️ Typewriter', css: '"Courier New", monospace' },
+    { id: 'elegant', name: '✨ Elegant Script', css: '"Dancing Script", cursive' },
+    { id: 'modern', name: '🔤 Modern Sans', css: '"Inter", sans-serif' },
+    { id: 'vintage', name: '📜 Vintage Serif', css: '"Playfair Display", serif' },
+    { id: 'casual', name: '👍 Casual', css: '"Comic Sans MS", cursive' }
+  ];
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelectedImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+  const generateAICaption = async () => {
+    if (!selectedImage) {
+      toast.error('Please upload an image first');
+      return;
     }
-    setIsStreaming(false);
-    toast.success('Camera stopped');
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    const ctx = canvas.getContext('2d');
-
-    if (ctx) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const filterCSS = filters.find(f => f.id === selectedFilter)?.css || 'none';
-      ctx.filter = filterCSS;
-      
-      ctx.drawImage(video, 0, 0);
-      
-      const imageData = canvas.toDataURL('image/png');
-      setCapturedImage(imageData);
-      toast.success('Photo captured with filter applied!');
-    }
-  };
-
-  const generateCaption = async () => {
-    if (!capturedImage) return;
     
-    setIsGeneratingCaption(true);
+    setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
         body: { 
-          prompt: "Generate a short, meaningful caption for this vintage-style photograph. Make it nostalgic and memory-worthy.", 
-          action: 'caption',
-          image: capturedImage
+          prompt: 'Generate a short, memorable caption for a vintage polaroid photo. Make it nostalgic, warm, and perfect for preserving memories. Keep it under 20 words.', 
+          action: 'compliment' 
         }
       });
 
       if (error) throw error;
-      setCustomCaption(data.result);
-      toast.success('Caption generated!');
+      setCaptionText(data.result);
+      toast.success('AI caption generated!');
     } catch (error) {
       console.error('Error generating caption:', error);
       toast.error('Failed to generate caption');
     } finally {
-      setIsGeneratingCaption(false);
+      setLoading(false);
     }
   };
 
-  const downloadPolaroid = () => {
-    if (!capturedImage) return;
+  const downloadPolaroid = useCallback(() => {
+    if (!selectedImage) {
+      toast.error('Please upload an image first');
+      return;
+    }
 
-    const canvas = document.createElement('canvas');
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
     const img = new Image();
-    
     img.onload = () => {
-      const padding = 40;
-      const bottomSpace = 80;
-      canvas.width = img.width + (padding * 2);
-      canvas.height = img.height + padding + bottomSpace;
+      // Polaroid dimensions
+      const polaroidWidth = 400;
+      const polaroidHeight = 480;
+      const photoWidth = 360;
+      const photoHeight = 360;
+      const photoX = 20;
+      const photoY = 20;
+      const captionY = 400;
+
+      canvas.width = polaroidWidth;
+      canvas.height = polaroidHeight;
+
+      // Draw white polaroid background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, polaroidWidth, polaroidHeight);
+
+      // Add subtle shadow/border effect
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, 0, polaroidWidth, 10);
+      ctx.fillRect(0, 0, 10, polaroidHeight);
+
+      // Draw the filtered image
+      ctx.save();
       
-      // White polaroid background with slight shadow
-      ctx!.fillStyle = '#ffffff';
-      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+      // Apply filter effect by drawing the image
+      ctx.drawImage(img, photoX, photoY, photoWidth, photoHeight);
       
-      // Add subtle shadow
-      ctx!.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx!.shadowBlur = 10;
-      ctx!.shadowOffsetX = 5;
-      ctx!.shadowOffsetY = 5;
+      // Apply filter overlay
+      const selectedFilter = filters.find(f => f.id === filter);
+      if (selectedFilter) {
+        // Basic filter simulation
+        switch (filter) {
+          case 'vintage':
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
+            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+            break;
+          case 'blackwhite':
+            ctx.globalCompositeOperation = 'saturation';
+            ctx.fillStyle = 'rgba(128, 128, 128, 0.8)';
+            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+            break;
+        }
+      }
       
-      // Draw image
-      ctx!.drawImage(img, padding, padding);
-      
-      // Reset shadow for text
-      ctx!.shadowColor = 'transparent';
-      ctx!.shadowBlur = 0;
-      ctx!.shadowOffsetX = 0;
-      ctx!.shadowOffsetY = 0;
-      
-      // Add caption if provided
-      if (customCaption.trim()) {
-        ctx!.fillStyle = '#333333';
-        ctx!.font = '18px "Courier New", monospace';
-        ctx!.textAlign = 'center';
+      ctx.restore();
+
+      // Draw caption
+      if (captionText.trim()) {
+        const selectedFont = fonts.find(f => f.id === captionFont);
+        const fontFamily = selectedFont ? selectedFont.css.replace(/"/g, '') : 'Arial';
         
-        // Word wrap for long captions
-        const words = customCaption.split(' ');
-        const maxWidth = canvas.width - (padding * 2);
-        let line = '';
-        let y = img.height + padding + 30;
+        ctx.fillStyle = '#333333';
+        ctx.font = `18px ${fontFamily}`;
+        ctx.textAlign = 'center';
         
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          const metrics = ctx!.measureText(testLine);
-          const testWidth = metrics.width;
-          
-          if (testWidth > maxWidth && n > 0) {
-            ctx!.fillText(line, canvas.width / 2, y);
-            line = words[n] + ' ';
-            y += 25;
+        // Word wrap for caption
+        const words = captionText.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > photoWidth - 40 && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = word;
           } else {
-            line = testLine;
+            currentLine = testLine;
           }
         }
-        ctx!.fillText(line, canvas.width / 2, y);
+        if (currentLine) lines.push(currentLine);
+        
+        // Draw each line
+        lines.forEach((line, index) => {
+          ctx.fillText(line, polaroidWidth / 2, captionY + (index * 24));
+        });
       }
-      
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = `polaroid-${Date.now()}.png`;
-      link.click();
-      
-      setShowCaptionModal(false);
-      setCustomCaption('');
-      toast.success('Polaroid downloaded with caption!');
+
+      // Download the image
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `polaroid-${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          toast.success('Polaroid downloaded!');
+        }
+      });
     };
-    
-    img.src = capturedImage;
-  };
 
-  const downloadImage = (format: 'normal' | 'polaroid') => {
-    if (!capturedImage) return;
-
-    if (format === 'polaroid') {
-      setShowCaptionModal(true);
-    } else {
-      const link = document.createElement('a');
-      link.href = capturedImage;
-      link.download = `vintage-photo-${Date.now()}.png`;
-      link.click();
-      toast.success('Image downloaded!');
-    }
-  };
-
-  const addToNotes = () => {
-    if (!capturedImage) return;
-    
-    const imageHtml = `<div class="note-image" style="text-align: center; margin: 20px 0;"><img src="${capturedImage}" alt="Vintage Photo" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" /><p style="font-size: 12px; color: #666; margin-top: 8px;">Vintage Photo with ${filters.find(f => f.id === selectedFilter)?.name} filter</p></div>`;
-    
-    localStorage.setItem('pending-image', imageHtml);
-    toast.success('Photo ready to add to notes! Create or open a note to add it.');
-  };
-
-  useEffect(() => {
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [stream]);
+    img.src = selectedImage;
+  }, [selectedImage, filter, captionText, captionFont]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 p-2 sm:p-0">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-            Vintage Camera Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {!isStreaming ? (
-              <Button onClick={startCamera} className="bg-green-500 hover:bg-green-600 text-xs sm:text-sm">
-                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                Start Camera
-              </Button>
-            ) : (
-              <Button onClick={stopCamera} variant="destructive" className="text-xs sm:text-sm">
-                <StopCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                Stop Camera
-              </Button>
-            )}
+    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Upload Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
+              Upload Photo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              ref={fileInputRef}
+              className="hidden"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full text-xs sm:text-sm"
+            >
+              Choose Image
+            </Button>
             
-            {isStreaming && (
-              <Button onClick={capturePhoto} className="bg-blue-500 hover:bg-blue-600 text-xs sm:text-sm">
-                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                Capture Photo
-              </Button>
-            )}
-          </div>
+            {selectedImage && (
+              <div className="space-y-3 sm:space-y-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Vintage Filter</label>
+                  <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filters.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <div>
-            <label className="block text-xs sm:text-sm font-medium mb-2">Select Vintage Filter</label>
-            <Select value={selectedFilter} onValueChange={setSelectedFilter}>
-              <SelectTrigger className="w-full text-xs sm:text-sm">
-                <SelectValue placeholder="Choose a filter" />
-              </SelectTrigger>
-              <SelectContent>
-                {filters.map((filter) => (
-                  <SelectItem key={filter.id} value={filter.id}>
-                    {filter.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Caption Font</label>
+                  <Select value={captionFont} onValueChange={setCaptionFont}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fonts.map((font) => (
+                        <SelectItem key={font.id} value={font.id}>
+                          {font.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <h3 className="text-sm sm:text-lg font-semibold mb-2">Live Preview</h3>
-              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                  style={{ 
-                    filter: filters.find(f => f.id === selectedFilter)?.css || 'none'
-                  }}
-                />
-                {!isStreaming && (
-                  <div className="absolute inset-0 flex items-center justify-center text-white">
-                    <div className="text-center">
-                      <Camera className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
-                      <p className="opacity-75 text-xs sm:text-sm">Click "Start Camera" to begin</p>
-                    </div>
+                <div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                    <label className="text-xs sm:text-sm font-medium">Polaroid Caption</label>
+                    <Button
+                      onClick={generateAICaption}
+                      disabled={loading}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      {loading ? 'Generating...' : 'AI Caption'}
+                    </Button>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {capturedImage && (
-              <div>
-                <h3 className="text-sm sm:text-lg font-semibold mb-2">Captured Photo</h3>
-                <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <img
-                    src={capturedImage}
-                    alt="Captured with filter"
-                    className="w-full h-full object-cover"
+                  <Textarea
+                    placeholder="Write a memory caption for your polaroid..."
+                    value={captionText}
+                    onChange={(e) => setCaptionText(e.target.value)}
+                    className="text-xs sm:text-sm min-h-[60px] sm:min-h-[80px]"
+                    maxLength={100}
                   />
+                  <p className="text-xs text-gray-500 mt-1">{captionText.length}/100 characters</p>
                 </div>
-                
-                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
-                  <Button 
-                    onClick={() => downloadImage('normal')} 
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Download
-                  </Button>
-                  <Button 
-                    onClick={() => downloadImage('polaroid')} 
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                  >
-                    <FileImage className="w-3 h-3 mr-1" />
-                    Polaroid Frame
-                  </Button>
-                  <Button 
-                    onClick={addToNotes} 
-                    size="sm"
-                    className="bg-purple-500 hover:bg-purple-600 text-xs"
-                  >
-                    Add to Notes
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Caption Modal for Polaroid */}
-      {showCaptionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="text-sm sm:text-base">Add Polaroid Caption</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium mb-2">Custom Caption</label>
-                <Textarea
-                  value={customCaption}
-                  onChange={(e) => setCustomCaption(e.target.value)}
-                  placeholder="Write a caption for your memory..."
-                  className="text-xs sm:text-sm"
-                  rows={3}
-                />
-              </div>
-              
-              <Button 
-                onClick={generateCaption}
-                disabled={isGeneratingCaption}
-                variant="outline"
-                className="w-full text-xs sm:text-sm"
-              >
-                {isGeneratingCaption ? (
-                  <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mr-2" />
-                ) : (
-                  <Sparkles className="w-3 h-3 mr-2" />
-                )}
-                {isGeneratingCaption ? 'Generating...' : 'Generate AI Caption'}
-              </Button>
-              
-              <div className="flex gap-2">
-                <Button onClick={downloadPolaroid} className="flex-1 text-xs sm:text-sm">
+                <Button
+                  onClick={downloadPolaroid}
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-xs sm:text-sm"
+                >
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Download Polaroid
                 </Button>
-                <Button onClick={() => setShowCaptionModal(false)} variant="outline" className="text-xs sm:text-sm">
-                  Cancel
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            )}
+          </CardContent>
+        </Card>
 
+        {/* Preview Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Type className="w-4 h-4 sm:w-5 sm:h-5" />
+              Preview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {selectedImage ? (
+              <div className="space-y-4">
+                {/* Live Preview */}
+                <div className="bg-white p-4 rounded-lg shadow-lg max-w-sm mx-auto" style={{ aspectRatio: '4/4.8' }}>
+                  <div className="relative">
+                    <img
+                      src={selectedImage}
+                      alt="Preview"
+                      className="w-full h-auto rounded border"
+                      style={{
+                        filter: filters.find(f => f.id === filter)?.css || 'none',
+                        aspectRatio: '1/1',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  </div>
+                  {captionText && (
+                    <div 
+                      className="mt-3 text-center text-gray-800 text-sm leading-relaxed"
+                      style={{ 
+                        fontFamily: fonts.find(f => f.id === captionFont)?.css.replace(/"/g, '') || 'Arial',
+                        minHeight: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {captionText}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 sm:py-12">
+                <Camera className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
+                <p className="text-xs sm:text-sm text-gray-500">Upload an image to see the preview</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Hidden canvas for image processing */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
