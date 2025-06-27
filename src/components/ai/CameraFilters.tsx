@@ -11,7 +11,7 @@ import { Camera, Download, Sparkles, Type } from 'lucide-react';
 
 export function CameraFilters() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [filter, setFilter] = useState('polaroid-dream');
+  const [filter, setFilter] = useState('vintage');
   const [captionText, setCaptionText] = useState('');
   const [captionFont, setCaptionFont] = useState('handwriting');
   const [loading, setLoading] = useState(false);
@@ -19,18 +19,12 @@ export function CameraFilters() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const filters = [
-    { id: 'polaroid-dream', name: '📸 Polaroid Dream', css: 'sepia(20%) saturate(120%) brightness(110%) contrast(95%)' },
-    { id: 'sepia-glow', name: '🌅 Sepia Glow', css: 'sepia(80%) brightness(110%) contrast(120%) saturate(130%)' },
-    { id: 'film-grain', name: '🎞️ Film Grain', css: 'grayscale(10%) contrast(130%) brightness(90%) saturate(110%)' },
-    { id: 'retro-chrome', name: '✨ Retro Chrome', css: 'saturate(80%) brightness(105%) contrast(110%) hue-rotate(10deg)' },
-    { id: 'vintage-noir', name: '🖤 Vintage Noir', css: 'grayscale(100%) contrast(150%) brightness(90%)' },
-    { id: 'faded-retro', name: '🌴 Faded Retro', css: 'opacity(85%) saturate(70%) brightness(115%) contrast(95%)' },
-    { id: 'cinematic-classic', name: '🎬 Cinematic Classic', css: 'saturate(90%) contrast(115%) brightness(95%) sepia(15%)' },
-    { id: 'kodachrome-dreams', name: '🌈 Kodachrome Dreams', css: 'saturate(140%) contrast(110%) brightness(105%) hue-rotate(5deg)' },
-    { id: 'retro-sunset', name: '🌇 Retro Sunset', css: 'sepia(40%) saturate(150%) hue-rotate(320deg) brightness(110%)' },
-    { id: 'bokeh-blast', name: '💫 Bokeh Blast', css: 'blur(0.5px) brightness(110%) saturate(130%) contrast(105%)' },
-    { id: 'sunfaded-memories', name: '☀️ Sunfaded Memories', css: 'opacity(80%) saturate(60%) brightness(120%) contrast(90%)' },
-    { id: 'grunge-aesthetic', name: '🔥 Grunge Aesthetic', css: 'contrast(140%) saturate(80%) brightness(85%) grayscale(20%)' }
+    { id: 'vintage', name: '📷 Vintage Sepia', css: 'sepia(100%) contrast(120%) brightness(90%)' },
+    { id: 'retro', name: '🌈 Retro Film', css: 'saturate(150%) hue-rotate(10deg) contrast(110%)' },
+    { id: 'blackwhite', name: '⚫ Black & White', css: 'grayscale(100%) contrast(120%)' },
+    { id: 'warm', name: '🔥 Warm Tone', css: 'sepia(30%) saturate(130%) brightness(105%)' },
+    { id: 'cool', name: '❄️ Cool Tone', css: 'hue-rotate(180deg) saturate(120%) brightness(95%)' },
+    { id: 'faded', name: '🌫️ Faded Film', css: 'opacity(85%) saturate(80%) brightness(110%)' }
   ];
 
   const fonts = [
@@ -125,12 +119,12 @@ export function CameraFilters() {
       if (selectedFilter) {
         // Basic filter simulation
         switch (filter) {
-          case 'sepia-glow':
+          case 'vintage':
             ctx.globalCompositeOperation = 'multiply';
             ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
             break;
-          case 'vintage-noir':
+          case 'blackwhite':
             ctx.globalCompositeOperation = 'saturation';
             ctx.fillStyle = 'rgba(128, 128, 128, 0.8)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
@@ -178,12 +172,12 @@ export function CameraFilters() {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `vintage-polaroid-${Date.now()}.png`;
+          a.download = `polaroid-${Date.now()}.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          toast.success('Vintage Polaroid downloaded!');
+          toast.success('Polaroid downloaded!');
         }
       });
     };
@@ -193,15 +187,6 @@ export function CameraFilters() {
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
-      {/* Description */}
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-sm text-gray-600 leading-relaxed">
-            🎥 <strong>Capture memories in style!</strong> Use the device's camera to snap a picture or upload an existing image, and apply a selection of nostalgic filters that give your photos that timeless retro touch. Whether you want your shot to have that classic film look, soft vintage hues, or a touch of grunge, we've got you covered. Choose your favorite filter below and let's bring your photos back to the golden age of photography!
-          </p>
-        </CardContent>
-      </Card>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Upload Section */}
         <Card>
@@ -229,7 +214,7 @@ export function CameraFilters() {
             {selectedImage && (
               <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2">Retro Vintage Filter</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Vintage Filter</label>
                   <Select value={filter} onValueChange={setFilter}>
                     <SelectTrigger className="text-xs sm:text-sm">
                       <SelectValue />
@@ -289,7 +274,7 @@ export function CameraFilters() {
                   className="w-full bg-pink-500 hover:bg-pink-600 text-xs sm:text-sm"
                 >
                   <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Download Vintage Polaroid
+                  Download Polaroid
                 </Button>
               </div>
             )}
@@ -340,7 +325,7 @@ export function CameraFilters() {
             ) : (
               <div className="text-center py-8 sm:py-12">
                 <Camera className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-xs sm:text-sm text-gray-500">Upload an image to see the vintage preview</p>
+                <p className="text-xs sm:text-sm text-gray-500">Upload an image to see the preview</p>
               </div>
             )}
           </CardContent>

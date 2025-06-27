@@ -1,9 +1,6 @@
 
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { useTheme } from '@/hooks/useTheme';
-import { Button } from '@/components/ui/button';
-import { Download, Upload } from 'lucide-react';
-import { toast } from 'sonner';
 
 type Tool = 'pen' | 'pencil' | 'highlighter' | 'eraser' | 'fill' | 'move';
 
@@ -29,13 +26,11 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   onFillClick?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
-  onFileUpload?: (file: File) => void;
 }
 
 export interface CanvasAreaRef {
   getCanvas: () => HTMLCanvasElement | null;
   redrawCanvas: () => void;
-  saveDrawing: (format: 'png' | 'jpeg') => void;
 }
 
 export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
@@ -48,11 +43,9 @@ export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
   onMouseMove,
   onMouseUp,
   onMouseLeave,
-  onFillClick,
-  onFileUpload
+  onFillClick
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme } = useTheme();
 
   const redrawCanvas = () => {
@@ -91,60 +84,9 @@ export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
     });
   };
 
-  const saveDrawing = (format: 'png' | 'jpeg') => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      toast.error('No canvas to save');
-      return;
-    }
-
-    try {
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const quality = format === 'jpeg' ? 0.9 : undefined;
-      
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `drawing-${Date.now()}.${format}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast.success(`Drawing saved as ${format.toUpperCase()}!`);
-        } else {
-          toast.error('Failed to save drawing');
-        }
-      }, mimeType, quality);
-    } catch (error) {
-      console.error('Error saving drawing:', error);
-      toast.error('Failed to save drawing');
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && onFileUpload) {
-      // Check if file is an allowed type
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
-      if (allowedTypes.includes(file.type)) {
-        onFileUpload(file);
-        toast.success('File uploaded successfully!');
-      } else {
-        toast.error('Please upload PNG, JPEG, JPG, or PDF files only');
-      }
-    }
-    // Reset input
-    if (event.target) {
-      event.target.value = '';
-    }
-  };
-
   useImperativeHandle(ref, () => ({
     getCanvas: () => canvasRef.current,
-    redrawCanvas,
-    saveDrawing
+    redrawCanvas
   }));
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -156,61 +98,15 @@ export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
   };
 
   return (
-    <div className="flex-1 p-2 sm:p-4 bg-slate-100 dark:bg-slate-900 flex flex-col">
-      {/* Toolbar */}
-      <div className="flex gap-2 mb-4 justify-center">
-        <input
-          type="file"
-          accept=".png,.jpg,.jpeg,.pdf"
-          onChange={handleFileUpload}
-          ref={fileInputRef}
-          className="hidden"
-        />
-        
-        <Button
-          onClick={() => fileInputRef.current?.click()}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1"
-        >
-          <Upload className="w-4 h-4" />
-          Upload File
-        </Button>
-
-        <Button
-          onClick={() => saveDrawing('png')}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1"
-        >
-          <Download className="w-4 h-4" />
-          Save PNG
-        </Button>
-
-        <Button
-          onClick={() => saveDrawing('jpeg')}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1"
-        >
-          <Download className="w-4 h-4" />
-          Save JPEG
-        </Button>
-      </div>
-
-      {/* Canvas */}
-      <div className="flex-1 flex items-center justify-center overflow-auto">
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          className="border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg cursor-crosshair max-w-full max-h-full"
-          onMouseDown={handleClick}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseLeave}
-        />
-      </div>
+    <div className="flex-1 p-2 sm:p-4 bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-auto">
+      <canvas
+        ref={canvasRef}
+        className="border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg cursor-crosshair max-w-full max-h-full"
+        onMouseDown={handleClick}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+      />
     </div>
   );
 });
