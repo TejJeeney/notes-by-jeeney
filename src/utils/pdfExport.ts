@@ -41,8 +41,8 @@ export const exportToPDF = (content: string, title: string = 'AI Generated Conte
       currentY += lineHeight;
     });
     
-    // Add footer
-    const totalPages = pdf.internal.getNumberOfPages();
+    // Add footer - Fixed the getNumberOfPages issue
+    const totalPages = (pdf as any).internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
       pdf.setFontSize(8);

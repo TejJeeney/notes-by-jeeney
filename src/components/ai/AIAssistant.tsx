@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,10 @@ export function AIAssistant({ selectedTool }: AIAssistantProps) {
   const [sourceLanguage, setSourceLanguage] = useState('auto');
   const [targetLanguage, setTargetLanguage] = useState('english');
   const [isDetecting, setIsDetecting] = useState(false);
+  const [genre, setGenre] = useState('');
+  const [subGenre, setSubGenre] = useState('');
+  const [style, setStyle] = useState('');
+  const [theme, setTheme] = useState('');
 
   const languages = [
     { id: 'auto', name: '🔍 Auto Detect', code: 'auto' },
@@ -75,43 +78,129 @@ export function AIAssistant({ selectedTool }: AIAssistantProps) {
         title: '📚 Story Generator',
         placeholder: 'Give me a theme, characters, or setting for your story...',
         action: 'story',
-        prompt: `Create an engaging story based on: ${input}`
+        prompt: `Create an engaging story based on: ${input}. Genre: ${genre}, Sub-genre: ${subGenre}, Style: ${style}, Theme: ${theme}`
       },
       rap: {
         title: '🎤 Advanced Rap Mode',
         placeholder: 'Enter your topic or message for rap lyrics...',
         action: 'rap',
-        prompt: `Create advanced rap lyrics with humanized flow about: ${input}`
+        prompt: `Create advanced rap lyrics with humanized flow about: ${input}. Genre: ${genre}, Sub-genre: ${subGenre}, Style: ${style}`
       },
       ghost: {
         title: '👻 Ghost Editor',
         placeholder: 'Enter text to rewrite with confidence and authority...',
         action: 'ghost',
-        prompt: `Rewrite this with confidence, authority, and poetic flair: ${input}`
+        prompt: `Rewrite this with confidence, authority, and poetic flair in ${style} style: ${input}`
       },
       haiku: {
         title: '🌸 Haiku Mode',
         placeholder: 'Enter your thoughts to transform into haiku...',
         action: 'haiku',
-        prompt: `Transform this into beautiful haiku (traditional or free-style): ${input}`
+        prompt: `Transform this into beautiful haiku (${style} style) with theme "${theme}": ${input}`
       },
       character: {
         title: '🎭 Character Mode',
         placeholder: 'Enter text and I\'ll rewrite it from famous perspectives...',
         action: 'character',
-        prompt: `Rewrite this from the perspective of famous characters like Shakespeare, Snoop Dogg, or Einstein: ${input}`
+        prompt: `Rewrite this from the perspective of ${style} character: ${input}`
       },
       mythology: {
         title: '👑 Mythology Mode',
         placeholder: 'Enter text to transform into epic mythological tales...',
         action: 'mythology',
-        prompt: `Reimagine this as epic tales from Mahabharata, Norse sagas, or Greek myths: ${input}`
+        prompt: `Reimagine this as epic tales from ${style} mythology with ${theme} theme: ${input}`
+      },
+      roast: {
+        title: '🔥 Dark Roast Mode',
+        placeholder: 'Enter text to get brutally roasted...',
+        action: 'roast',
+        prompt: `Take this note and rewrite it in a savage, brutally honest, and sarcastic tone. Roast level: ${style}. Here's the note: ${input}`
+      },
+      unfiltered: {
+        title: '💀 Unfiltered Mode',
+        placeholder: 'Enter text for raw, unhinged rewrite...',
+        action: 'unfiltered',
+        prompt: `Rewrite the following with zero filters — go raw, unhinged, and uncensored. Style: ${style}. Text: ${input}`
+      },
+      confession: {
+        title: '🧠 AI Confession Booth',
+        placeholder: 'Share your confession, guilty pleasure, or intrusive thought...',
+        action: 'confession',
+        prompt: `This is a safe space confession. Respond as: ${style}. Confession: ${input}`
+      },
+      anarchy: {
+        title: '🧷 Anarchy Generator',
+        placeholder: 'Enter text to unleash creative chaos...',
+        action: 'anarchy',
+        prompt: `Take this text and unleash creative chaos. Break structure, glitch logic, rearrange words, add randomness, poetic irony, and absurd brilliance: ${input}`
+      },
+      toxic: {
+        title: '🧪 Toxic Text Filter',
+        placeholder: 'Enter toxic message to analyze and create clapback...',
+        action: 'toxic',
+        prompt: `Analyze this message for hidden toxicity, manipulation, or gaslighting. Then rewrite it into a powerful clapback using ${style} vibe: ${input}`
       }
     };
     return configs[tool as keyof typeof configs] || configs.chat;
   };
 
   const config = getToolConfig(selectedTool);
+
+  const getOptionsForTool = () => {
+    switch (selectedTool) {
+      case 'story':
+        return {
+          genres: ['Fantasy', 'Sci-Fi', 'Romance', 'Horror', 'Mystery', 'Thriller', 'Adventure', 'Comedy', 'Drama'],
+          subGenres: ['Epic Fantasy', 'Urban Fantasy', 'Space Opera', 'Cyberpunk', 'Paranormal Romance', 'Gothic Horror', 'Cozy Mystery', 'Psychological Thriller'],
+          styles: ['Narrative', 'Dialogue-heavy', 'Descriptive', 'Action-packed', 'Character-driven', 'Plot-driven'],
+          themes: ['Love', 'Revenge', 'Redemption', 'Power', 'Family', 'Friendship', 'Betrayal', 'Discovery']
+        };
+      case 'rap':
+        return {
+          genres: ['Hip-Hop', 'Trap', 'Drill', 'Old School', 'Conscious Rap', 'Gangsta Rap', 'Alternative Hip-Hop'],
+          subGenres: ['Mumble Rap', 'Boom Bap', 'Cloud Rap', 'Emo Rap', 'Jazz Rap', 'Horrorcore'],
+          styles: ['Aggressive', 'Melodic', 'Fast Flow', 'Slow Flow', 'Storytelling', 'Braggadocious', 'Emotional']
+        };
+      case 'ghost':
+        return {
+          styles: ['Confident Authority', 'Poetic Elegance', 'Intellectual Sophistication', 'Commanding Presence', 'Persuasive Power']
+        };
+      case 'haiku':
+        return {
+          styles: ['Traditional 5-7-5', 'Free-style', 'Modern', 'Nature-focused', 'Emotion-centered'],
+          themes: ['Nature', 'Love', 'Loss', 'Time', 'Beauty', 'Seasons', 'Memories', 'Dreams']
+        };
+      case 'character':
+        return {
+          styles: ['Shakespeare', 'Snoop Dogg', 'Einstein', 'Yoda', 'Gordon Ramsay', 'Morgan Freeman', 'Deadpool', 'Sherlock Holmes']
+        };
+      case 'mythology':
+        return {
+          styles: ['Greek', 'Norse', 'Egyptian', 'Hindu (Mahabharata)', 'Celtic', 'Japanese', 'Native American'],
+          themes: ['Heroic Journey', 'Divine Punishment', 'Love & Betrayal', 'War & Honor', 'Creation & Destruction']
+        };
+      case 'roast':
+        return {
+          styles: ['Mild Roast', 'Gordon Ramsay Mode', 'Tejas-VE Dark Mode']
+        };
+      case 'unfiltered':
+        return {
+          styles: ['Dark Humor', 'Street Talk', 'Thug Poetry', 'No Mercy']
+        };
+      case 'confession':
+        return {
+          styles: ['Therapist AI', 'Mafia Priest', 'Satirical Judge']
+        };
+      case 'toxic':
+        return {
+          styles: ['Petty Clapback', 'Silent Killer', 'Queen Energy', 'Zero BS']
+        };
+      default:
+        return {};
+    }
+  };
+
+  const options = getOptionsForTool();
 
   const handleGenerate = async () => {
     if (!input.trim()) {
@@ -266,6 +355,71 @@ export function AIAssistant({ selectedTool }: AIAssistantProps) {
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {(options.genres || options.styles || options.themes) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {options.genres && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Genre</label>
+                  <Select value={genre} onValueChange={setGenre}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue placeholder="Select genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.genres.map((g) => (
+                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {options.subGenres && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Sub-genre</label>
+                  <Select value={subGenre} onValueChange={setSubGenre}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue placeholder="Select sub-genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.subGenres.map((sg) => (
+                        <SelectItem key={sg} value={sg}>{sg}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {options.styles && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Style</label>
+                  <Select value={style} onValueChange={setStyle}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.styles.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {options.themes && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Theme</label>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue placeholder="Select theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.themes.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
 
