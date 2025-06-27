@@ -2,37 +2,29 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Camera, Download, Sparkles, Type, Video } from 'lucide-react';
+import { Camera, Download, Sparkles, Type } from 'lucide-react';
 
 export function CameraFilters() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [filter, setFilter] = useState('polaroid-dream');
+  const [filter, setFilter] = useState('vintage');
   const [captionText, setCaptionText] = useState('');
   const [captionFont, setCaptionFont] = useState('handwriting');
   const [loading, setLoading] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
   const filters = [
-    { id: 'polaroid-dream', name: '📸 Polaroid Dream', css: 'sepia(30%) saturate(120%) blur(0.5px) contrast(105%) brightness(95%)', vignette: true },
-    { id: 'sepia-glow', name: '🌅 Sepia Glow', css: 'sepia(80%) saturate(150%) brightness(110%) contrast(120%)', glow: true },
-    { id: 'film-grain', name: '🎞️ Film Grain', css: 'grayscale(20%) saturate(80%) contrast(115%) brightness(90%)', grain: true },
-    { id: 'retro-chrome', name: '🔮 Retro Chrome', css: 'saturate(70%) brightness(105%) contrast(95%) hue-rotate(10deg)' },
-    { id: 'vintage-noir', name: '🖤 Vintage Noir', css: 'grayscale(100%) contrast(140%) brightness(85%)' },
-    { id: 'faded-retro', name: '☀️ Faded Retro', css: 'saturate(60%) brightness(115%) contrast(85%) opacity(90%)' },
-    { id: 'cinematic-classic', name: '🎬 Cinematic Classic', css: 'saturate(85%) contrast(108%) brightness(95%) sepia(10%)' },
-    { id: 'kodachrome-dreams', name: '🌈 Kodachrome Dreams', css: 'saturate(140%) contrast(110%) brightness(105%) hue-rotate(-5deg)' },
-    { id: 'retro-sunset', name: '🌇 Retro Sunset', css: 'sepia(40%) saturate(130%) hue-rotate(20deg) brightness(105%)' },
-    { id: 'bokeh-blast', name: '✨ Bokeh Blast', css: 'blur(0.3px) saturate(120%) brightness(110%) contrast(95%)', bokeh: true },
-    { id: 'sunfaded-memories', name: '🌤️ Sunfaded Memories', css: 'saturate(70%) brightness(120%) contrast(80%) sepia(25%)', lightleak: true },
-    { id: 'grunge-aesthetic', name: '🎸 Grunge Aesthetic', css: 'saturate(60%) contrast(130%) brightness(80%) grayscale(30%)', grunge: true }
+    { id: 'vintage', name: '📷 Vintage Sepia', css: 'sepia(100%) contrast(120%) brightness(90%)' },
+    { id: 'retro', name: '🌈 Retro Film', css: 'saturate(150%) hue-rotate(10deg) contrast(110%)' },
+    { id: 'blackwhite', name: '⚫ Black & White', css: 'grayscale(100%) contrast(120%)' },
+    { id: 'warm', name: '🔥 Warm Tone', css: 'sepia(30%) saturate(130%) brightness(105%)' },
+    { id: 'cool', name: '❄️ Cool Tone', css: 'hue-rotate(180deg) saturate(120%) brightness(95%)' },
+    { id: 'faded', name: '🌫️ Faded Film', css: 'opacity(85%) saturate(80%) brightness(110%)' }
   ];
 
   const fonts = [
@@ -53,49 +45,6 @@ export function CameraFilters() {
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const startCamera = async () => {
-    try {
-      setIsCapturing(true);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera');
-      setIsCapturing(false);
-    }
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) return;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    
-    const imageData = canvas.toDataURL('image/jpeg');
-    setSelectedImage(imageData);
-    stopCamera();
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCapturing(false);
   };
 
   const generateAICaption = async () => {
@@ -138,6 +87,7 @@ export function CameraFilters() {
 
     const img = new Image();
     img.onload = () => {
+      // Polaroid dimensions
       const polaroidWidth = 400;
       const polaroidHeight = 480;
       const photoWidth = 360;
@@ -158,33 +108,31 @@ export function CameraFilters() {
       ctx.fillRect(0, 0, polaroidWidth, 10);
       ctx.fillRect(0, 0, 10, polaroidHeight);
 
-      // Draw the image
+      // Draw the filtered image
+      ctx.save();
+      
+      // Apply filter effect by drawing the image
       ctx.drawImage(img, photoX, photoY, photoWidth, photoHeight);
       
-      // Apply selected filter effects
+      // Apply filter overlay
       const selectedFilter = filters.find(f => f.id === filter);
       if (selectedFilter) {
-        // Apply visual effects based on filter
-        ctx.save();
-        ctx.globalCompositeOperation = 'multiply';
-        
+        // Basic filter simulation
         switch (filter) {
-          case 'sepia-glow':
-            ctx.fillStyle = 'rgba(255, 200, 150, 0.3)';
+          case 'vintage':
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
             break;
-          case 'vintage-noir':
+          case 'blackwhite':
+            ctx.globalCompositeOperation = 'saturation';
             ctx.fillStyle = 'rgba(128, 128, 128, 0.8)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
             break;
-          case 'retro-sunset':
-            ctx.fillStyle = 'rgba(255, 150, 100, 0.2)';
-            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
-            break;
         }
-        
-        ctx.restore();
       }
+      
+      ctx.restore();
 
       // Draw caption
       if (captionText.trim()) {
@@ -195,6 +143,7 @@ export function CameraFilters() {
         ctx.font = `18px ${fontFamily}`;
         ctx.textAlign = 'center';
         
+        // Word wrap for caption
         const words = captionText.split(' ');
         const lines = [];
         let currentLine = '';
@@ -211,22 +160,24 @@ export function CameraFilters() {
         }
         if (currentLine) lines.push(currentLine);
         
+        // Draw each line
         lines.forEach((line, index) => {
           ctx.fillText(line, polaroidWidth / 2, captionY + (index * 24));
         });
       }
 
+      // Download the image
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `vintage-polaroid-${Date.now()}.png`;
+          a.download = `polaroid-${Date.now()}.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          toast.success('Vintage polaroid downloaded!');
+          toast.success('Polaroid downloaded!');
         }
       });
     };
@@ -236,76 +187,34 @@ export function CameraFilters() {
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
-      <div className="text-center mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
-        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
-          📸 Capture Memories in Style!
-        </h3>
-        <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
-          Use the device's camera to snap a picture or upload an existing image, and apply a selection of nostalgic filters that give your photos that timeless retro touch. Whether you want your shot to have that classic film look, soft vintage hues, or a touch of grunge, we've got you covered. Choose your favorite filter below and let's bring your photos back to the golden age of photography!
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Upload/Camera Section */}
+        {/* Upload Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-              Capture or Upload
+              Upload Photo
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!isCapturing ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={startCamera}
-                    className="w-full text-xs sm:text-sm"
-                    variant="outline"
-                  >
-                    <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                    Use Camera
-                  </Button>
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full text-xs sm:text-sm"
-                  >
-                    <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                    Upload Image
-                  </Button>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  ref={fileInputRef}
-                  className="hidden"
-                />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  className="w-full rounded-lg"
-                  style={{ maxHeight: '300px' }}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={capturePhoto} className="text-xs sm:text-sm">
-                    📸 Capture
-                  </Button>
-                  <Button onClick={stopCamera} variant="outline" className="text-xs sm:text-sm">
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              ref={fileInputRef}
+              className="hidden"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full text-xs sm:text-sm"
+            >
+              Choose Image
+            </Button>
             
             {selectedImage && (
               <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2">Retro Filter</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Vintage Filter</label>
                   <Select value={filter} onValueChange={setFilter}>
                     <SelectTrigger className="text-xs sm:text-sm">
                       <SelectValue />
@@ -338,7 +247,7 @@ export function CameraFilters() {
 
                 <div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
-                    <label className="text-xs sm:text-sm font-medium">Vintage Caption</label>
+                    <label className="text-xs sm:text-sm font-medium">Polaroid Caption</label>
                     <Button
                       onClick={generateAICaption}
                       disabled={loading}
@@ -351,7 +260,7 @@ export function CameraFilters() {
                     </Button>
                   </div>
                   <Textarea
-                    placeholder="Write a vintage memory caption..."
+                    placeholder="Write a memory caption for your polaroid..."
                     value={captionText}
                     onChange={(e) => setCaptionText(e.target.value)}
                     className="text-xs sm:text-sm min-h-[60px] sm:min-h-[80px]"
@@ -362,10 +271,10 @@ export function CameraFilters() {
 
                 <Button
                   onClick={downloadPolaroid}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-xs sm:text-sm"
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-xs sm:text-sm"
                 >
                   <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Download Vintage Polaroid
+                  Download Polaroid
                 </Button>
               </div>
             )}
@@ -377,17 +286,18 @@ export function CameraFilters() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Type className="w-4 h-4 sm:w-5 sm:h-5" />
-              Vintage Preview
+              Preview
             </CardTitle>
           </CardHeader>
           <CardContent>
             {selectedImage ? (
               <div className="space-y-4">
+                {/* Live Preview */}
                 <div className="bg-white p-4 rounded-lg shadow-lg max-w-sm mx-auto" style={{ aspectRatio: '4/4.8' }}>
                   <div className="relative">
                     <img
                       src={selectedImage}
-                      alt="Vintage Preview"
+                      alt="Preview"
                       className="w-full h-auto rounded border"
                       style={{
                         filter: filters.find(f => f.id === filter)?.css || 'none',
@@ -415,13 +325,14 @@ export function CameraFilters() {
             ) : (
               <div className="text-center py-8 sm:py-12">
                 <Camera className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-xs sm:text-sm text-gray-500">Capture or upload an image to see the vintage preview</p>
+                <p className="text-xs sm:text-sm text-gray-500">Upload an image to see the preview</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
+      {/* Hidden canvas for image processing */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );

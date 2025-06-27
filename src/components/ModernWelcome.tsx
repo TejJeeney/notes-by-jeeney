@@ -1,5 +1,5 @@
 
-import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Crown, Flame, Zap, MessageCircle, Shuffle, ShieldAlert } from 'lucide-react';
+import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Gamepad2, Crown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNotes } from '@/hooks/useNotes';
@@ -43,7 +43,7 @@ export function ModernWelcome() {
     {
       icon: Bot,
       title: "Story Generator",
-      description: "Create amazing stories from your words and scenarios with genre, sub-genre, and style themes",
+      description: "Create amazing stories from your words and scenarios",
       emoji: "📚",
       id: "story"
     },
@@ -57,21 +57,21 @@ export function ModernWelcome() {
     {
       icon: Mic,
       title: "Advanced Rap Mode",
-      description: "Transform your notes into fire rap lyrics with advanced controls, genres, and humanization",
+      description: "Transform your notes into fire rap lyrics with advanced controls and humanization",
       emoji: "🎤",
       id: "rap"
     },
     {
       icon: Edit3,
       title: "Ghost Editor",
-      description: "Rewrite your notes with confidence, authority, or poetic flair in various styles",
+      description: "Rewrite your notes with confidence, authority, or poetic flair",
       emoji: "👻",
       id: "ghost"
     },
     {
       icon: Coffee,
       title: "Haiku Mode",
-      description: "Transform your thoughts into beautiful traditional or free-style Haiku with themes",
+      description: "Transform your thoughts into beautiful traditional or free-style Haiku",
       emoji: "🌸",
       id: "haiku"
     },
@@ -83,48 +83,24 @@ export function ModernWelcome() {
       id: "character"
     },
     {
+      icon: Gamepad2,
+      title: "Gamification Mode",
+      description: "Transform boring text into exciting quests, missions, and challenges",
+      emoji: "🎮",
+      id: "gamification"
+    },
+    {
       icon: Crown,
       title: "Mythology Mode",
       description: "Reimagine your text as epic tales from Mahabharata, Norse sagas, or Greek myths",
       emoji: "👑",
       id: "mythology"
-    },
-    {
-      icon: Flame,
-      title: "Dark Roast Mode",
-      description: "Savage rewrite with brutal honesty - from mild roasts to Gordon Ramsay fury",
-      emoji: "🔥",
-      id: "roast"
-    },
-    {
-      icon: Zap,
-      title: "Unfiltered Mode",
-      description: "Zero filters, raw and unhinged - dark humor, street talk, or pure savage energy",
-      emoji: "💀",
-      id: "unfiltered"
-    },
-    {
-      icon: MessageCircle,
-      title: "AI Confession Booth",
-      description: "Safe space for confessions with therapist, mafia priest, or satirical judge personas",
-      emoji: "🧠",
-      id: "confession"
-    },
-    {
-      icon: Shuffle,
-      title: "Anarchy Generator",
-      description: "Creative chaos that breaks structure and creates glitch-poetry with rogue genius",
-      emoji: "🧷",
-      id: "anarchy"
-    },
-    {
-      icon: ShieldAlert,
-      title: "Toxic Text Filter",
-      description: "Analyze toxicity and generate powerful clapbacks - petty, ice-cold, or zero BS responses",
-      emoji: "🧪",
-      id: "toxic"
     }
   ];
+
+  const handleCreateNote = async () => {
+    await createNote();
+  };
 
   const handleFeatureClick = (featureId: string) => {
     setSelectedAITool(featureId);
@@ -187,23 +163,9 @@ export function ModernWelcome() {
             </span>
           </h1>
           
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-3xl mx-auto px-2 sm:px-4">
-            <strong className="font-bold text-slate-800 dark:text-slate-100">
-              "Because your brain is tired, your notes are chaotic, and AI is the only thing holding it all together."
-            </strong>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto px-2 sm:px-4">
+            Your intelligent note-taking companion powered by AI. Create, organize, and enhance your thoughts with powerful AI tools.
           </p>
-
-          <div className="mb-4 sm:mb-6 max-w-4xl mx-auto px-2 sm:px-4">
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-              Whether you're writing poetry, plotting revenge, or confessing your dark secrets to a digital therapist — this ain't your grandma's notes app.
-            </p>
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-              It's where scribbles turn into Shakespeare, roasts go full Gordon Ramsay, and chaos becomes ✨content✨.
-            </p>
-            <p className="text-sm sm:text-base md:text-lg font-semibold bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent leading-relaxed">
-              "Think it. Dump it. Watch AI fix it. Or ruin it for fun. Either way, you're winning."
-            </p>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8 px-1 sm:px-2">
@@ -212,7 +174,7 @@ export function ModernWelcome() {
               key={index} 
               onClick={() => handleFeatureClick(feature.id)}
               className="group hover:shadow-2xl hover:scale-105 hover:shadow-purple-500/20 transition-all duration-300 animate-fade-in border-slate-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm cursor-pointer hover:bg-white/90 dark:hover:bg-slate-800/90"
-              style={{ animationDelay: `${index * 50}ms` }}
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <CardHeader className="text-center pb-2 sm:pb-3 p-3 sm:p-4">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 mx-auto mb-2 sm:mb-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/30 transition-all duration-300">
@@ -229,6 +191,17 @@ export function ModernWelcome() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        <div className="text-center">
+          <Button 
+            onClick={handleCreateNote} 
+            size="lg" 
+            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl hover:shadow-purple-500/40 transition-all duration-300 px-4 sm:px-6 md:px-8 py-2 sm:py-3 text-sm sm:text-base md:text-lg font-semibold rounded-2xl hover:scale-105 animate-scale-in w-full sm:w-auto"
+          >
+            <FileText className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-2" />
+            Start Taking Notes
+          </Button>
         </div>
       </div>
     </div>
