@@ -1,4 +1,3 @@
-
 import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Gamepad2, Crown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,10 +97,6 @@ export function ModernWelcome() {
     }
   ];
 
-  const handleCreateNote = async () => {
-    await createNote();
-  };
-
   const handleFeatureClick = (featureId: string) => {
     setSelectedAITool(featureId);
   };
@@ -191,17 +186,6 @@ export function ModernWelcome() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        <div className="text-center">
-          <Button 
-            onClick={handleCreateNote} 
-            size="lg" 
-            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl hover:shadow-purple-500/40 transition-all duration-300 px-4 sm:px-6 md:px-8 py-2 sm:py-3 text-sm sm:text-base md:text-lg font-semibold rounded-2xl hover:scale-105 animate-scale-in w-full sm:w-auto"
-          >
-            <FileText className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-2" />
-            Start Taking Notes
-          </Button>
         </div>
       </div>
     </div>

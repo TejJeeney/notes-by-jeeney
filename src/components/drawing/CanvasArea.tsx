@@ -31,6 +31,7 @@ interface CanvasAreaProps {
 export interface CanvasAreaRef {
   getCanvas: () => HTMLCanvasElement | null;
   redrawCanvas: () => void;
+  exportAsImage: (format: 'png' | 'jpeg', quality?: number) => string;
 }
 
 export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
@@ -84,9 +85,21 @@ export const CanvasArea = forwardRef<CanvasAreaRef, CanvasAreaProps>(({
     });
   };
 
+  const exportAsImage = (format: 'png' | 'jpeg', quality: number = 0.9): string => {
+    const canvas = canvasRef.current;
+    if (!canvas) return '';
+
+    if (format === 'jpeg') {
+      return canvas.toDataURL('image/jpeg', quality);
+    } else {
+      return canvas.toDataURL('image/png');
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     getCanvas: () => canvasRef.current,
-    redrawCanvas
+    redrawCanvas,
+    exportAsImage
   }));
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
