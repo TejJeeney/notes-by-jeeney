@@ -1,5 +1,5 @@
 
-import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Gamepad2, Crown } from 'lucide-react';
+import { MessageSquare, Star, Languages, Sparkles, FileText, Bot, Camera, Mic, Edit3, Coffee, Users, Crown, Flame, Skull, Heart, Zap, Shield } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNotes } from '@/hooks/useNotes';
@@ -83,24 +83,48 @@ export function ModernWelcome() {
       id: "character"
     },
     {
-      icon: Gamepad2,
-      title: "Gamification Mode",
-      description: "Transform boring text into exciting quests, missions, and challenges",
-      emoji: "🎮",
-      id: "gamification"
-    },
-    {
       icon: Crown,
       title: "Mythology Mode",
       description: "Reimagine your text as epic tales from Mahabharata, Norse sagas, or Greek myths",
       emoji: "👑",
       id: "mythology"
+    },
+    {
+      icon: Flame,
+      title: "Dark Roast Mode",
+      description: "Savage rewrite with brutal honesty - from mild jabs to Gordon Ramsay fury",
+      emoji: "🔥",
+      id: "roast"
+    },
+    {
+      icon: Skull,
+      title: "Unfiltered Mode",
+      description: "Raw, unhinged, uncensored rewrites with zero filters and no boundaries",
+      emoji: "💀",
+      id: "unfiltered"
+    },
+    {
+      icon: Heart,
+      title: "AI Confession Booth",
+      description: "Safe space for confessions with therapist, priest, or judge personas",
+      emoji: "🧠",
+      id: "confession"
+    },
+    {
+      icon: Zap,
+      title: "Anarchy Generator",
+      description: "Unleash creative chaos with glitch-poetry and rebellious brilliance",
+      emoji: "🧷",
+      id: "anarchy"
+    },
+    {
+      icon: Shield,
+      title: "Toxic Text Filter",
+      description: "Analyze toxicity and generate powerful clapbacks with queen energy",
+      emoji: "📱",
+      id: "toxic"
     }
   ];
-
-  const handleCreateNote = async () => {
-    await createNote();
-  };
 
   const handleFeatureClick = (featureId: string) => {
     setSelectedAITool(featureId);
@@ -163,12 +187,23 @@ export function ModernWelcome() {
             </span>
           </h1>
           
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto px-2 sm:px-4">
-            Your intelligent note-taking companion powered by AI. Create, organize, and enhance your thoughts with powerful AI tools.
-          </p>
+          <div className="mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-3xl mx-auto px-2 sm:px-4">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4">
+              <strong className="text-slate-800 dark:text-slate-100">
+                Because your brain is tired, your notes are chaotic, and AI is the only thing holding it all together.
+              </strong>
+            </p>
+            <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mb-4">
+              Whether you're writing poetry, plotting revenge, or confessing your dark secrets to a digital therapist — this ain't your grandma's notes app.
+              It's where scribbles turn into Shakespeare, roasts go full Gordon Ramsay, and chaos becomes ✨content✨.
+            </p>
+            <p className="text-sm sm:text-base md:text-lg font-medium bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent animate-pulse">
+              ✨"Think it. Dump it. Watch AI fix it. Or ruin it for fun. Either way, you're winning."✨
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8 px-1 sm:px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 px-1 sm:px-2">
           {aiFeatures.map((feature, index) => (
             <Card 
               key={index} 
@@ -191,17 +226,6 @@ export function ModernWelcome() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        <div className="text-center">
-          <Button 
-            onClick={handleCreateNote} 
-            size="lg" 
-            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl hover:shadow-purple-500/40 transition-all duration-300 px-4 sm:px-6 md:px-8 py-2 sm:py-3 text-sm sm:text-base md:text-lg font-semibold rounded-2xl hover:scale-105 animate-scale-in w-full sm:w-auto"
-          >
-            <FileText className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-2" />
-            Start Taking Notes
-          </Button>
         </div>
       </div>
     </div>

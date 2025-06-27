@@ -11,7 +11,7 @@ import { Camera, Download, Sparkles, Type } from 'lucide-react';
 
 export function CameraFilters() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [filter, setFilter] = useState('vintage');
+  const [filter, setFilter] = useState('polaroid-dream');
   const [captionText, setCaptionText] = useState('');
   const [captionFont, setCaptionFont] = useState('handwriting');
   const [loading, setLoading] = useState(false);
@@ -19,12 +19,18 @@ export function CameraFilters() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const filters = [
-    { id: 'vintage', name: '📷 Vintage Sepia', css: 'sepia(100%) contrast(120%) brightness(90%)' },
-    { id: 'retro', name: '🌈 Retro Film', css: 'saturate(150%) hue-rotate(10deg) contrast(110%)' },
-    { id: 'blackwhite', name: '⚫ Black & White', css: 'grayscale(100%) contrast(120%)' },
-    { id: 'warm', name: '🔥 Warm Tone', css: 'sepia(30%) saturate(130%) brightness(105%)' },
-    { id: 'cool', name: '❄️ Cool Tone', css: 'hue-rotate(180deg) saturate(120%) brightness(95%)' },
-    { id: 'faded', name: '🌫️ Faded Film', css: 'opacity(85%) saturate(80%) brightness(110%)' }
+    { id: 'polaroid-dream', name: '📷 Polaroid Dream', css: 'sepia(30%) contrast(110%) brightness(105%) saturate(120%) blur(0.5px)' },
+    { id: 'sepia-glow', name: '🌅 Sepia Glow', css: 'sepia(80%) contrast(120%) brightness(110%) saturate(130%)' },
+    { id: 'film-grain', name: '🎞️ Film Grain', css: 'contrast(130%) brightness(90%) saturate(80%) grayscale(20%)' },
+    { id: 'retro-chrome', name: '✨ Retro Chrome', css: 'saturate(70%) contrast(105%) brightness(105%) hue-rotate(5deg)' },
+    { id: 'vintage-noir', name: '⚫ Vintage Noir', css: 'grayscale(100%) contrast(150%) brightness(90%)' },
+    { id: 'faded-retro', name: '🌫️ Faded Retro', css: 'opacity(85%) saturate(60%) brightness(115%) contrast(90%)' },
+    { id: 'cinematic-classic', name: '🎬 Cinematic Classic', css: 'contrast(115%) saturate(90%) brightness(95%) sepia(10%)' },
+    { id: 'kodachrome-dreams', name: '🌈 Kodachrome Dreams', css: 'saturate(140%) contrast(115%) brightness(105%) hue-rotate(-5deg)' },
+    { id: 'retro-sunset', name: '🌅 Retro Sunset', css: 'sepia(40%) saturate(150%) hue-rotate(10deg) brightness(110%)' },
+    { id: 'bokeh-blast', name: '✨ Bokeh Blast', css: 'blur(0.3px) saturate(130%) brightness(110%) contrast(105%)' },
+    { id: 'sunfaded-memories', name: '☀️ Sunfaded Memories', css: 'opacity(80%) saturate(60%) brightness(125%) contrast(85%)' },
+    { id: 'grunge-aesthetic', name: '🖤 Grunge Aesthetic', css: 'contrast(140%) saturate(70%) brightness(85%) grayscale(30%)' }
   ];
 
   const fonts = [
@@ -33,7 +39,37 @@ export function CameraFilters() {
     { id: 'elegant', name: '✨ Elegant Script', css: '"Dancing Script", cursive' },
     { id: 'modern', name: '🔤 Modern Sans', css: '"Inter", sans-serif' },
     { id: 'vintage', name: '📜 Vintage Serif', css: '"Playfair Display", serif' },
-    { id: 'casual', name: '👍 Casual', css: '"Comic Sans MS", cursive' }
+    { id: 'casual', name: '👍 Casual', css: '"Comic Sans MS", cursive' },
+    { id: 'inter', name: '✨ Inter', css: '"Inter", sans-serif' },
+    { id: 'poppins', name: '✨ Poppins', css: '"Poppins", sans-serif' },
+    { id: 'roboto', name: '✨ Roboto', css: '"Roboto", sans-serif' },
+    { id: 'lato', name: '✨ Lato', css: '"Lato", sans-serif' },
+    { id: 'montserrat', name: '✨ Montserrat', css: '"Montserrat", sans-serif' },
+    { id: 'open-sans', name: '✨ Open Sans', css: '"Open Sans", sans-serif' },
+    { id: 'nunito', name: '✨ Nunito', css: '"Nunito", sans-serif' },
+    { id: 'work-sans', name: '✨ Work Sans', css: '"Work Sans", sans-serif' },
+    { id: 'dm-sans', name: '✨ DM Sans', css: '"DM Sans", sans-serif' },
+    { id: 'raleway', name: '🎨 Raleway', css: '"Raleway", sans-serif' },
+    { id: 'quicksand', name: '🎨 Quicksand', css: '"Quicksand", sans-serif' },
+    { id: 'space-grotesk', name: '🎨 Space Grotesk', css: '"Space Grotesk", sans-serif' },
+    { id: 'sora', name: '🎨 Sora', css: '"Sora", sans-serif' },
+    { id: 'cabin', name: '🎨 Cabin', css: '"Cabin", sans-serif' },
+    { id: 'josefin-sans', name: '🎨 Josefin Sans', css: '"Josefin Sans", sans-serif' },
+    { id: 'orbitron', name: '🧠 Orbitron', css: '"Orbitron", sans-serif' },
+    { id: 'exo-2', name: '🧠 Exo 2', css: '"Exo 2", sans-serif' },
+    { id: 'share-tech', name: '🧠 Share Tech Mono', css: '"Share Tech Mono", monospace' },
+    { id: 'titillium', name: '🧠 Titillium Web', css: '"Titillium Web", sans-serif' },
+    { id: 'jetbrains', name: '🧠 JetBrains Mono', css: '"JetBrains Mono", monospace' },
+    { id: 'comic-neue', name: '🎭 Comic Neue', css: '"Comic Neue", cursive' },
+    { id: 'baloo', name: '🎭 Baloo 2', css: '"Baloo 2", cursive' },
+    { id: 'luckiest', name: '🎭 Luckiest Guy', css: '"Luckiest Guy", cursive' },
+    { id: 'fredoka', name: '🎭 Fredoka', css: '"Fredoka", sans-serif' },
+    { id: 'gloria', name: '🎭 Gloria Hallelujah', css: '"Gloria Hallelujah", cursive' },
+    { id: 'bangers', name: '🎭 Bangers', css: '"Bangers", cursive' },
+    { id: 'cinzel', name: '📜 Cinzel', css: '"Cinzel", serif' },
+    { id: 'playfair', name: '📜 Playfair Display', css: '"Playfair Display", serif' },
+    { id: 'cormorant', name: '📜 Cormorant Garamond', css: '"Cormorant Garamond", serif' },
+    { id: 'great-vibes', name: '📜 Great Vibes', css: '"Great Vibes", cursive' }
   ];
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,12 +155,17 @@ export function CameraFilters() {
       if (selectedFilter) {
         // Basic filter simulation
         switch (filter) {
-          case 'vintage':
+          case 'polaroid-dream':
             ctx.globalCompositeOperation = 'multiply';
-            ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
+            ctx.fillStyle = 'rgba(139, 69, 19, 0.2)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
             break;
-          case 'blackwhite':
+          case 'sepia-glow':
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.fillStyle = 'rgba(139, 69, 19, 0.4)';
+            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+            break;
+          case 'vintage-noir':
             ctx.globalCompositeOperation = 'saturation';
             ctx.fillStyle = 'rgba(128, 128, 128, 0.8)';
             ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
@@ -186,7 +227,19 @@ export function CameraFilters() {
   }, [selectedImage, filter, captionText, captionFont]);
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto">
+      {/* Description Section */}
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+        <CardContent className="p-4 sm:p-6">
+          <p className="text-sm sm:text-base text-center text-gray-700 dark:text-gray-300 leading-relaxed">
+            📸 <strong>Capture memories in style!</strong> Use the device's camera to snap a picture or upload an existing image, 
+            and apply a selection of nostalgic filters that give your photos that timeless retro touch. Whether you want your shot 
+            to have that classic film look, soft vintage hues, or a touch of grunge, we've got you covered. Choose your favorite 
+            filter below and let's bring your photos back to the golden age of photography! ✨
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Upload Section */}
         <Card>
@@ -235,7 +288,7 @@ export function CameraFilters() {
                     <SelectTrigger className="text-xs sm:text-sm">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60">
                       {fonts.map((font) => (
                         <SelectItem key={font.id} value={font.id}>
                           {font.name}
