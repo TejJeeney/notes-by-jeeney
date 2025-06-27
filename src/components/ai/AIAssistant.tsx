@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { MessageSquare, Languages, BookOpen, Star, Sparkles, Mic, Edit3, Coffee, Users, Gamepad2, Crown, Shuffle } from 'lucide-react';
+import { MessageSquare, Languages, BookOpen, Star, Sparkles, Mic, Edit3, Coffee, Users, Crown, Shuffle, Flame, Skull, Heart, Zap, Shield } from 'lucide-react';
 import { ChatInterface } from './ChatInterface';
 
 interface AIAssistantProps {
@@ -71,13 +70,28 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
   const [selectedCharacter, setSelectedCharacter] = useState('shakespeare');
   const [characterLanguage, setCharacterLanguage] = useState('english');
   
-  // Gamification states
-  const [gameStyle, setGameStyle] = useState('quest');
-  const [gameLanguage, setGameLanguage] = useState('english');
-  
   // Mythology states
   const [mythStyle, setMythStyle] = useState('mahabharata');
   const [mythLanguage, setMythLanguage] = useState('english');
+
+  // Dark Roast Mode states
+  const [roastLevel, setRoastLevel] = useState('mild');
+  const [roastLanguage, setRoastLanguage] = useState('english');
+
+  // Unfiltered Mode states
+  const [unfilteredVibe, setUnfilteredVibe] = useState('dark-humor');
+  const [unfilteredLanguage, setUnfilteredLanguage] = useState('english');
+
+  // AI Confession Booth states
+  const [confessionPersona, setConfessionPersona] = useState('therapist');
+  const [confessionLanguage, setConfessionLanguage] = useState('english');
+
+  // Anarchy Generator states
+  const [anarchyLanguage, setAnarchyLanguage] = useState('english');
+
+  // Toxic Text Filter states
+  const [toxicResponseVibe, setToxicResponseVibe] = useState('petty');
+  const [toxicLanguage, setToxicLanguage] = useState('english');
 
   // Clear results when switching tools
   useEffect(() => {
@@ -292,23 +306,6 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     }
   };
 
-  const generateGameText = async () => {
-    if (!prompt.trim()) {
-      toast.error('Please enter text to gamify');
-      return;
-    }
-
-    const gameText = await callGeminiAI(prompt, 'gamification', {
-      gameStyle: gameStyle,
-      language: gameLanguage
-    });
-    
-    if (gameText) {
-      setResult(gameText);
-      toast.success('Text gamified successfully!');
-    }
-  };
-
   const generateMythText = async () => {
     if (!prompt.trim()) {
       toast.error('Please enter text to mythologize');
@@ -323,6 +320,91 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
     if (mythText) {
       setResult(mythText);
       toast.success('Mythological tale created!');
+    }
+  };
+
+  // New AI Feature Functions
+  const generateRoast = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to roast');
+      return;
+    }
+
+    const roast = await callGeminiAI(prompt, 'roast', {
+      roastLevel: roastLevel,
+      language: roastLanguage
+    });
+    
+    if (roast) {
+      setResult(roast);
+      toast.success('Savage roast delivered! 🔥');
+    }
+  };
+
+  const generateUnfiltered = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to unleash');
+      return;
+    }
+
+    const unfiltered = await callGeminiAI(prompt, 'unfiltered', {
+      vibe: unfilteredVibe,
+      language: unfilteredLanguage
+    });
+    
+    if (unfiltered) {
+      setResult(unfiltered);
+      toast.success('Beast unleashed! 💀');
+    }
+  };
+
+  const generateConfession = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter your confession');
+      return;
+    }
+
+    const confession = await callGeminiAI(prompt, 'confession', {
+      persona: confessionPersona,
+      language: confessionLanguage
+    });
+    
+    if (confession) {
+      setResult(confession);
+      toast.success('Confession heard and responded to 🧠');
+    }
+  };
+
+  const generateAnarchy = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to anarchize');
+      return;
+    }
+
+    const anarchy = await callGeminiAI(prompt, 'anarchy', {
+      language: anarchyLanguage
+    });
+    
+    if (anarchy) {
+      setResult(anarchy);
+      toast.success('Creative chaos unleashed! 🧷');
+    }
+  };
+
+  const generateToxicFilter = async () => {
+    if (!prompt.trim()) {
+      toast.error('Please enter text to analyze and respond to');
+      return;
+    }
+
+    const toxicResponse = await callGeminiAI(prompt, 'toxic', {
+      responseVibe: toxicResponseVibe,
+      language: toxicLanguage
+    });
+    
+    if (toxicResponse) {
+      setResult(toxicResponse);
+      toast.success('Toxicity disarmed! 📱');
     }
   };
 
@@ -355,6 +437,307 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   if (selectedTool === 'chat') {
     return <ChatInterface />;
+  }
+
+  if (selectedTool === 'roast') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+            Dark Roast Mode (Savage Rewrite)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="🔥 Enter your note to get brutally roasted..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Roast Level</label>
+              <Select value={roastLevel} onValueChange={setRoastLevel}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select roast level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mild">😏 Mild Roast - Light jabs, passive-aggressive</SelectItem>
+                  <SelectItem value="gordon">🔥 Gordon Ramsay Mode - Insanely harsh chef fury</SelectItem>
+                  <SelectItem value="tejas">💀 Tejas-VE - Darkly funny, edgy, no filters</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={roastLanguage} onValueChange={setRoastLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateRoast} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-sm sm:text-base">
+            {loading ? 'Preparing roast...' : '🔥 Roast This Like Your Worst Enemy\'s Diary'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Your Savage Roast:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-red-50 dark:bg-red-900/20 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'unfiltered') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Skull className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+            Unfiltered Mode (NSFW Toggle)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="🎤 Enter text to unleash with zero filters - raw, unhinged, uncensored..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Vibe</label>
+              <Select value={unfilteredVibe} onValueChange={setUnfilteredVibe}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select vibe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dark-humor">😈 Dark Humor - Ruthless comedy, no boundaries</SelectItem>
+                  <SelectItem value="street-talk">🏙️ Street Talk - Hood-style lingo with hard bars</SelectItem>
+                  <SelectItem value="thug-poetry">🎭 Thug Poetry - Gritty, lyrical aggression</SelectItem>
+                  <SelectItem value="no-mercy">💀 No Mercy - Pure savage, no empathy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={unfilteredLanguage} onValueChange={setUnfilteredLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateUnfiltered} disabled={loading} className="w-full bg-gray-700 hover:bg-gray-800 text-sm sm:text-base">
+            {loading ? 'Unleashing beast...' : '🔓 Unleash The Beast - Zero Filters'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Unfiltered Output:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'confession') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
+            AI Confession Booth
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="💬 This is a safe space. Share your confession, guilty pleasure, or intrusive thought..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Persona</label>
+              <Select value={confessionPersona} onValueChange={setConfessionPersona}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select persona" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="therapist">🧠 Therapist AI - Supportive, gentle validation</SelectItem>
+                  <SelectItem value="priest">⛪ Mafia Priest - Mysterious, dramatic absolution</SelectItem>
+                  <SelectItem value="judge">⚖️ Satirical Judge - Witty, sarcastic commentary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={confessionLanguage} onValueChange={setConfessionLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateConfession} disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600 text-sm sm:text-base">
+            {loading ? 'Listening...' : '🎭 Confess & Receive Guidance'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Response from your chosen guide:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-pink-50 dark:bg-pink-900/20 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'anarchy') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
+            Anarchy Generator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="🧨 Enter text to unleash creative chaos - glitch logic, rearrange words, poetic irony..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
+          />
+          
+          <div>
+            <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+            <Select value={anarchyLanguage} onValueChange={setAnarchyLanguage}>
+              <SelectTrigger className="text-xs sm:text-sm">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">🇺🇸 English</SelectItem>
+                <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button onClick={generateAnarchy} disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 text-sm sm:text-base">
+            {loading ? 'Creating chaos...' : '🎨 Unleash Creative Chaos & Rogue Genius'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Chaotic Creation:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedTool === 'toxic') {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+            Toxic Text Filter
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="🧪 Enter message to analyze for toxicity and get a powerful clapback response..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Response Vibe</label>
+              <Select value={toxicResponseVibe} onValueChange={setToxicResponseVibe}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select response vibe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="petty">💅 Petty Clapback - Sassy, smart, just enough drama</SelectItem>
+                  <SelectItem value="silent-killer">🧊 Silent Killer - Ice-cold, intellectual, deadly polite</SelectItem>
+                  <SelectItem value="queen">👑 Queen Energy - Empowered, iconic, emotionally superior</SelectItem>
+                  <SelectItem value="zero-bs">⚡ Zero BS - Direct, raw, bulletproof truth</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+              <Select value={toxicLanguage} onValueChange={setToxicLanguage}>
+                <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button onClick={generateToxicFilter} disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600 text-sm sm:text-base">
+            {loading ? 'Analyzing & crafting response...' : '🛡️ Analyze & Deliver Power Clapback'}
+          </Button>
+          
+          {result && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs sm:text-sm font-medium">Your Power Response:</p>
+                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-blue-50 dark:bg-blue-900/20 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    );
   }
 
   if (selectedTool === 'story') {
@@ -805,70 +1188,6 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs sm:text-sm font-medium">Character Transformation:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
-              </CardContent>
-            </Card>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (selectedTool === 'gamification') {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-            Gamification Mode
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Enter text to transform into an exciting game scenario..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
-          />
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Game Style</label>
-              <Select value={gameStyle} onValueChange={setGameStyle}>
-                <SelectTrigger className="text-xs sm:text-sm">
-                  <SelectValue placeholder="Select style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="quest">⚔️ Epic Quest</SelectItem>
-                  <SelectItem value="mission">🎯 Secret Mission</SelectItem>
-                  <SelectItem value="challenge">🏆 Ultimate Challenge</SelectItem>
-                  <SelectItem value="adventure">🗺️ Adventure Mode</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
-              <Select value={gameLanguage} onValueChange={setGameLanguage}>
-                <SelectTrigger className="text-xs sm:text-sm">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">🇺🇸 English</SelectItem>
-                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <Button onClick={generateGameText} disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-sm sm:text-base">
-            {loading ? 'Loading game...' : '🎮 Gamify Text'}
-          </Button>
-          
-          {result && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs sm:text-sm font-medium">Game Scenario:</p>
                 <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
               </CardContent>
             </Card>

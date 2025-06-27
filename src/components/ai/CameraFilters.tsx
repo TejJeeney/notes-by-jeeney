@@ -2,391 +2,419 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Camera, Upload, Download, RotateCcw, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import { Camera, Download, Sparkles, Type } from 'lucide-react';
+
+const VINTAGE_FILTERS = [
+  {
+    id: 'polaroid-dream',
+    name: 'Polaroid Dream',
+    description: 'Iconic Polaroid-style fade with soft vignette and dreamy hues',
+    emoji: '📸',
+    css: 'sepia(20%) saturate(120%) contrast(85%) brightness(110%) hue-rotate(10deg)'
+  },
+  {
+    id: 'sepia-glow',
+    name: 'Sepia Glow',
+    description: 'Warm sepia-toned filter with golden glow for old-school portraits',
+    emoji: '🌅',
+    css: 'sepia(80%) saturate(150%) contrast(90%) brightness(105%) hue-rotate(20deg)'
+  },
+  {
+    id: 'film-grain',
+    name: 'Film Grain',
+    description: 'Grainy texture with faded colors, mimicking classic film roll look',
+    emoji: '🎞️',
+    css: 'contrast(110%) brightness(95%) saturate(85%) hue-rotate(-5deg)'
+  },
+  {
+    id: 'retro-chrome',
+    name: 'Retro Chrome',
+    description: 'Vintage chrome filter with washed-out colors for a 70s vibe',
+    emoji: '✨',
+    css: 'contrast(120%) brightness(110%) saturate(70%) hue-rotate(15deg)'
+  },
+  {
+    id: 'vintage-noir',
+    name: 'Vintage Noir',
+    description: 'Black & white with high contrast and rich shadow details',
+    emoji: '🎭',
+    css: 'grayscale(100%) contrast(150%) brightness(90%)'
+  },
+  {
+    id: 'faded-retro',
+    name: 'Faded Retro',
+    description: 'Slightly faded, sun-bleached effect from the 80s',
+    emoji: '🌴',
+    css: 'saturate(70%) contrast(85%) brightness(115%) hue-rotate(25deg)'
+  },
+  {
+    id: 'cinematic-classic',
+    name: 'Cinematic Classic',
+    description: 'Muted tones with filmic contrast for timeless movie scenes',
+    emoji: '🎬',
+    css: 'contrast(95%) saturate(80%) brightness(100%) hue-rotate(-10deg)'
+  },
+  {
+    id: 'kodachrome-dreams',
+    name: 'Kodachrome Dreams',
+    description: 'Bright colors with warm, rich look inspired by Kodachrome film',
+    emoji: '🌈',
+    css: 'saturate(140%) contrast(110%) brightness(105%) hue-rotate(5deg)'
+  },
+  {
+    id: 'retro-sunset',
+    name: 'Retro Sunset',
+    description: 'Warm oranges and pinks with vintage California feel',
+    emoji: '🌅',
+    css: 'saturate(130%) contrast(100%) brightness(110%) hue-rotate(30deg)'
+  },
+  {
+    id: 'bokeh-blast',
+    name: 'Bokeh Blast',
+    description: 'Soft, colorful bokeh effects for dreamy vintage portraits',
+    emoji: '💫',
+    css: 'blur(0.5px) saturate(120%) brightness(110%) contrast(90%)'
+  },
+  {
+    id: 'sunfaded-memories',
+    name: 'Sunfaded Memories',
+    description: 'Sun-bleached effect with washed-out colors and light leaks',
+    emoji: '☀️',
+    css: 'saturate(60%) contrast(80%) brightness(125%) hue-rotate(35deg)'
+  },
+  {
+    id: 'grunge-aesthetic',
+    name: 'Grunge Aesthetic',
+    description: 'Gritty, worn-out effect with rough textures and faded tones',
+    emoji: '🎸',
+    css: 'contrast(130%) saturate(70%) brightness(85%) hue-rotate(-15deg)'
+  }
+];
+
+const FONT_FAMILIES = [
+  { id: 'inter', name: 'Inter', category: 'Clean & Modern' },
+  { id: 'poppins', name: 'Poppins', category: 'Clean & Modern' },
+  { id: 'roboto', name: 'Roboto', category: 'Clean & Modern' },
+  { id: 'lato', name: 'Lato', category: 'Clean & Modern' },
+  { id: 'montserrat', name: 'Montserrat', category: 'Clean & Modern' },
+  { id: 'raleway', name: 'Raleway', category: 'Aesthetic & Minimal' },
+  { id: 'space-grotesk', name: 'Space Grotesk', category: 'Smart & Techy' },
+  { id: 'orbitron', name: 'Orbitron', category: 'Smart & Techy' },
+  { id: 'comic-neue', name: 'Comic Neue', category: 'Playful & Funky' },
+  { id: 'fredoka', name: 'Fredoka', category: 'Playful & Funky' },
+  { id: 'cinzel', name: 'Cinzel', category: 'Vintage & Dramatic' },
+  { id: 'playfair-display', name: 'Playfair Display', category: 'Vintage & Dramatic' }
+];
 
 export function CameraFilters() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [filter, setFilter] = useState('polaroid-dream');
-  const [captionText, setCaptionText] = useState('');
-  const [captionFont, setCaptionFont] = useState('handwriting');
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFilter, setSelectedFilter] = useState<string>('');
+  const [capturedImage, setCapturedImage] = useState<string>('');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [caption, setCaption] = useState('');
+  const [selectedFont, setSelectedFont] = useState('inter');
+  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
-  const filters = [
-    { id: 'polaroid-dream', name: '📷 Polaroid Dream', css: 'sepia(30%) contrast(110%) brightness(105%) saturate(120%) blur(0.5px)' },
-    { id: 'sepia-glow', name: '🌅 Sepia Glow', css: 'sepia(80%) contrast(120%) brightness(110%) saturate(130%)' },
-    { id: 'film-grain', name: '🎞️ Film Grain', css: 'contrast(130%) brightness(90%) saturate(80%) grayscale(20%)' },
-    { id: 'retro-chrome', name: '✨ Retro Chrome', css: 'saturate(70%) contrast(105%) brightness(105%) hue-rotate(5deg)' },
-    { id: 'vintage-noir', name: '⚫ Vintage Noir', css: 'grayscale(100%) contrast(150%) brightness(90%)' },
-    { id: 'faded-retro', name: '🌫️ Faded Retro', css: 'opacity(85%) saturate(60%) brightness(115%) contrast(90%)' },
-    { id: 'cinematic-classic', name: '🎬 Cinematic Classic', css: 'contrast(115%) saturate(90%) brightness(95%) sepia(10%)' },
-    { id: 'kodachrome-dreams', name: '🌈 Kodachrome Dreams', css: 'saturate(140%) contrast(115%) brightness(105%) hue-rotate(-5deg)' },
-    { id: 'retro-sunset', name: '🌅 Retro Sunset', css: 'sepia(40%) saturate(150%) hue-rotate(10deg) brightness(110%)' },
-    { id: 'bokeh-blast', name: '✨ Bokeh Blast', css: 'blur(0.3px) saturate(130%) brightness(110%) contrast(105%)' },
-    { id: 'sunfaded-memories', name: '☀️ Sunfaded Memories', css: 'opacity(80%) saturate(60%) brightness(125%) contrast(85%)' },
-    { id: 'grunge-aesthetic', name: '🖤 Grunge Aesthetic', css: 'contrast(140%) saturate(70%) brightness(85%) grayscale(30%)' }
-  ];
+  const startCamera = async () => {
+    try {
+      setIsCapturing(true);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user' },
+        audio: false 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        setStream(mediaStream);
+        setShowCamera(true);
+        toast.success('Camera ready! Smile for the camera! 📸');
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast.error('Camera access denied. Please check permissions.');
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
-  const fonts = [
-    { id: 'handwriting', name: '✍️ Handwriting', css: '"Kalam", cursive' },
-    { id: 'typewriter', name: '⌨️ Typewriter', css: '"Courier New", monospace' },
-    { id: 'elegant', name: '✨ Elegant Script', css: '"Dancing Script", cursive' },
-    { id: 'modern', name: '🔤 Modern Sans', css: '"Inter", sans-serif' },
-    { id: 'vintage', name: '📜 Vintage Serif', css: '"Playfair Display", serif' },
-    { id: 'casual', name: '👍 Casual', css: '"Comic Sans MS", cursive' },
-    { id: 'inter', name: '✨ Inter', css: '"Inter", sans-serif' },
-    { id: 'poppins', name: '✨ Poppins', css: '"Poppins", sans-serif' },
-    { id: 'roboto', name: '✨ Roboto', css: '"Roboto", sans-serif' },
-    { id: 'lato', name: '✨ Lato', css: '"Lato", sans-serif' },
-    { id: 'montserrat', name: '✨ Montserrat', css: '"Montserrat", sans-serif' },
-    { id: 'open-sans', name: '✨ Open Sans', css: '"Open Sans", sans-serif' },
-    { id: 'nunito', name: '✨ Nunito', css: '"Nunito", sans-serif' },
-    { id: 'work-sans', name: '✨ Work Sans', css: '"Work Sans", sans-serif' },
-    { id: 'dm-sans', name: '✨ DM Sans', css: '"DM Sans", sans-serif' },
-    { id: 'raleway', name: '🎨 Raleway', css: '"Raleway", sans-serif' },
-    { id: 'quicksand', name: '🎨 Quicksand', css: '"Quicksand", sans-serif' },
-    { id: 'space-grotesk', name: '🎨 Space Grotesk', css: '"Space Grotesk", sans-serif' },
-    { id: 'sora', name: '🎨 Sora', css: '"Sora", sans-serif' },
-    { id: 'cabin', name: '🎨 Cabin', css: '"Cabin", sans-serif' },
-    { id: 'josefin-sans', name: '🎨 Josefin Sans', css: '"Josefin Sans", sans-serif' },
-    { id: 'orbitron', name: '🧠 Orbitron', css: '"Orbitron", sans-serif' },
-    { id: 'exo-2', name: '🧠 Exo 2', css: '"Exo 2", sans-serif' },
-    { id: 'share-tech', name: '🧠 Share Tech Mono', css: '"Share Tech Mono", monospace' },
-    { id: 'titillium', name: '🧠 Titillium Web', css: '"Titillium Web", sans-serif' },
-    { id: 'jetbrains', name: '🧠 JetBrains Mono', css: '"JetBrains Mono", monospace' },
-    { id: 'comic-neue', name: '🎭 Comic Neue', css: '"Comic Neue", cursive' },
-    { id: 'baloo', name: '🎭 Baloo 2', css: '"Baloo 2", cursive' },
-    { id: 'luckiest', name: '🎭 Luckiest Guy', css: '"Luckiest Guy", cursive' },
-    { id: 'fredoka', name: '🎭 Fredoka', css: '"Fredoka", sans-serif' },
-    { id: 'gloria', name: '🎭 Gloria Hallelujah', css: '"Gloria Hallelujah", cursive' },
-    { id: 'bangers', name: '🎭 Bangers', css: '"Bangers", cursive' },
-    { id: 'cinzel', name: '📜 Cinzel', css: '"Cinzel", serif' },
-    { id: 'playfair', name: '📜 Playfair Display', css: '"Playfair Display", serif' },
-    { id: 'cormorant', name: '📜 Cormorant Garamond', css: '"Cormorant Garamond", serif' },
-    { id: 'great-vibes', name: '📜 Great Vibes', css: '"Great Vibes", cursive' }
-  ];
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        setCapturedImage(imageData);
+        stopCamera();
+        toast.success('Photo captured! Now choose a vintage filter.');
+      }
+    }
+  };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
+        const result = e.target?.result as string;
+        setCapturedImage(result);
+        toast.success('Image uploaded! Ready for vintage magic.');
       };
       reader.readAsDataURL(file);
+    } else {
+      toast.error('Please select a valid image file.');
     }
   };
 
-  const generateAICaption = async () => {
-    if (!selectedImage) {
-      toast.error('Please upload an image first');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('gemini-ai', {
-        body: { 
-          prompt: 'Generate a short, memorable caption for a vintage polaroid photo. Make it nostalgic, warm, and perfect for preserving memories. Keep it under 20 words.', 
-          action: 'compliment' 
-        }
-      });
-
-      if (error) throw error;
-      setCaptionText(data.result);
-      toast.success('AI caption generated!');
-    } catch (error) {
-      console.error('Error generating caption:', error);
-      toast.error('Failed to generate caption');
-    } finally {
-      setLoading(false);
+  const applyFilter = (filterId: string) => {
+    setSelectedFilter(filterId);
+    const filter = VINTAGE_FILTERS.find(f => f.id === filterId);
+    if (filter) {
+      toast.success(`${filter.name} filter applied! ${filter.emoji}`);
     }
   };
 
-  const downloadPolaroid = useCallback(() => {
-    if (!selectedImage) {
-      toast.error('Please upload an image first');
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      // Polaroid dimensions
-      const polaroidWidth = 400;
-      const polaroidHeight = 480;
-      const photoWidth = 360;
-      const photoHeight = 360;
-      const photoX = 20;
-      const photoY = 20;
-      const captionY = 400;
-
-      canvas.width = polaroidWidth;
-      canvas.height = polaroidHeight;
-
-      // Draw white polaroid background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, polaroidWidth, polaroidHeight);
-
-      // Add subtle shadow/border effect
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(0, 0, polaroidWidth, 10);
-      ctx.fillRect(0, 0, 10, polaroidHeight);
-
-      // Draw the filtered image
-      ctx.save();
-      
-      // Apply filter effect by drawing the image
-      ctx.drawImage(img, photoX, photoY, photoWidth, photoHeight);
-      
-      // Apply filter overlay
-      const selectedFilter = filters.find(f => f.id === filter);
-      if (selectedFilter) {
-        // Basic filter simulation
-        switch (filter) {
-          case 'polaroid-dream':
-            ctx.globalCompositeOperation = 'multiply';
-            ctx.fillStyle = 'rgba(139, 69, 19, 0.2)';
-            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
-            break;
-          case 'sepia-glow':
-            ctx.globalCompositeOperation = 'multiply';
-            ctx.fillStyle = 'rgba(139, 69, 19, 0.4)';
-            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
-            break;
-          case 'vintage-noir':
-            ctx.globalCompositeOperation = 'saturation';
-            ctx.fillStyle = 'rgba(128, 128, 128, 0.8)';
-            ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
-            break;
-        }
-      }
-      
-      ctx.restore();
-
-      // Draw caption
-      if (captionText.trim()) {
-        const selectedFont = fonts.find(f => f.id === captionFont);
-        const fontFamily = selectedFont ? selectedFont.css.replace(/"/g, '') : 'Arial';
+  const downloadImage = () => {
+    if (capturedImage) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
         
-        ctx.fillStyle = '#333333';
-        ctx.font = `18px ${fontFamily}`;
-        ctx.textAlign = 'center';
-        
-        // Word wrap for caption
-        const words = captionText.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > photoWidth - 40 && currentLine !== '') {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          
+          if (ctx) {
+            // Apply filter
+            const filter = VINTAGE_FILTERS.find(f => f.id === selectedFilter);
+            if (filter) {
+              ctx.filter = filter.css;
+            }
+            
+            ctx.drawImage(img, 0, 0);
+            
+            // Add caption if present
+            if (caption.trim()) {
+              ctx.filter = 'none';
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+              ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+              
+              ctx.fillStyle = 'white';
+              ctx.font = `24px ${selectedFont}`;
+              ctx.textAlign = 'center';
+              ctx.fillText(caption, canvas.width / 2, canvas.height - 30);
+            }
+            
+            // Download the image
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `vintage-photo-${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast.success('Vintage photo downloaded! 📷✨');
+              }
+            }, 'image/jpeg', 0.9);
           }
-        }
-        if (currentLine) lines.push(currentLine);
+        };
         
-        // Draw each line
-        lines.forEach((line, index) => {
-          ctx.fillText(line, polaroidWidth / 2, captionY + (index * 24));
-        });
+        img.src = capturedImage;
       }
+    }
+  };
 
-      // Download the image
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `polaroid-${Date.now()}.png`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast.success('Polaroid downloaded!');
-        }
-      });
-    };
-
-    img.src = selectedImage;
-  }, [selectedImage, filter, captionText, captionFont]);
+  const resetCapture = () => {
+    setCapturedImage('');
+    setSelectedFilter('');
+    setCaption('');
+    stopCamera();
+    toast.info('Ready for a new vintage moment!');
+  };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto">
-      {/* Description Section */}
-      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
-        <CardContent className="p-4 sm:p-6">
-          <p className="text-sm sm:text-base text-center text-gray-700 dark:text-gray-300 leading-relaxed">
-            📸 <strong>Capture memories in style!</strong> Use the device's camera to snap a picture or upload an existing image, 
-            and apply a selection of nostalgic filters that give your photos that timeless retro touch. Whether you want your shot 
-            to have that classic film look, soft vintage hues, or a touch of grunge, we've got you covered. Choose your favorite 
-            filter below and let's bring your photos back to the golden age of photography! ✨
+    <div className="w-full max-w-6xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Camera className="w-5 h-5 text-purple-600" />
+            Vintage Camera Filters
+          </CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            📸 Capture memories in style! Use your device's camera to snap a picture or upload an existing image, 
+            and apply a selection of nostalgic filters that give your photos that timeless retro touch. Whether you want 
+            your shot to have that classic film look, soft vintage hues, or a touch of grunge, we've got you covered. 
+            Choose your favorite filter below and let's bring your photos back to the golden age of photography!
           </p>
-        </CardContent>
-      </Card>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {!capturedImage && !showCamera && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={startCamera} 
+                disabled={isCapturing}
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600"
+              >
+                <Camera className="w-4 h-4" />
+                {isCapturing ? 'Starting Camera...' : 'Take Photo'}
+              </Button>
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Upload Image
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+          )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Upload Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-              Upload Photo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              ref={fileInputRef}
-              className="hidden"
-            />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full text-xs sm:text-sm"
-            >
-              Choose Image
-            </Button>
-            
-            {selectedImage && (
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2">Vintage Filter</label>
-                  <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger className="text-xs sm:text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filters.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2">Caption Font</label>
-                  <Select value={captionFont} onValueChange={setCaptionFont}>
-                    <SelectTrigger className="text-xs sm:text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {fonts.map((font) => (
-                        <SelectItem key={font.id} value={font.id}>
-                          {font.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
-                    <label className="text-xs sm:text-sm font-medium">Polaroid Caption</label>
-                    <Button
-                      onClick={generateAICaption}
-                      disabled={loading}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      {loading ? 'Generating...' : 'AI Caption'}
-                    </Button>
-                  </div>
-                  <Textarea
-                    placeholder="Write a memory caption for your polaroid..."
-                    value={captionText}
-                    onChange={(e) => setCaptionText(e.target.value)}
-                    className="text-xs sm:text-sm min-h-[60px] sm:min-h-[80px]"
-                    maxLength={100}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">{captionText.length}/100 characters</p>
-                </div>
-
-                <Button
-                  onClick={downloadPolaroid}
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-xs sm:text-sm"
-                >
-                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Download Polaroid
+          {showCamera && (
+            <div className="space-y-4">
+              <div className="relative mx-auto max-w-md">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full rounded-lg shadow-lg"
+                />
+              </div>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={capturePhoto} className="bg-red-500 hover:bg-red-600">
+                  📸 Capture Photo
+                </Button>
+                <Button onClick={stopCamera} variant="outline">
+                  Cancel
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
 
-        {/* Preview Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Type className="w-4 h-4 sm:w-5 sm:h-5" />
-              Preview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedImage ? (
-              <div className="space-y-4">
-                {/* Live Preview */}
-                <div className="bg-white p-4 rounded-lg shadow-lg max-w-sm mx-auto" style={{ aspectRatio: '4/4.8' }}>
-                  <div className="relative">
-                    <img
-                      src={selectedImage}
-                      alt="Preview"
-                      className="w-full h-auto rounded border"
-                      style={{
-                        filter: filters.find(f => f.id === filter)?.css || 'none',
-                        aspectRatio: '1/1',
-                        objectFit: 'cover'
-                      }}
-                    />
+          {capturedImage && (
+            <div className="space-y-6">
+              <div className="relative mx-auto max-w-md">
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  className="w-full rounded-lg shadow-lg"
+                  style={{
+                    filter: selectedFilter ? VINTAGE_FILTERS.find(f => f.id === selectedFilter)?.css : 'none'
+                  }}
+                />
+                {caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-3 rounded-b-lg">
+                    <p className="text-center" style={{ fontFamily: selectedFont }}>
+                      {caption}
+                    </p>
                   </div>
-                  {captionText && (
-                    <div 
-                      className="mt-3 text-center text-gray-800 text-sm leading-relaxed"
-                      style={{ 
-                        fontFamily: fonts.find(f => f.id === captionFont)?.css.replace(/"/g, '') || 'Arial',
-                        minHeight: '60px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {captionText}
-                    </div>
-                  )}
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Add Caption (Optional)</label>
+                  <Input
+                    placeholder="Add a vintage caption to your photo..."
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    className="text-center"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Caption Font</label>
+                  <Select value={selectedFont} onValueChange={setSelectedFont}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONT_FAMILIES.map((font) => (
+                        <SelectItem key={font.id} value={font.id}>
+                          <span style={{ fontFamily: font.id }}>
+                            {font.name} - {font.category}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8 sm:py-12">
-                <Camera className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-xs sm:text-sm text-gray-500">Upload an image to see the preview</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Hidden canvas for image processing */}
-      <canvas ref={canvasRef} className="hidden" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {VINTAGE_FILTERS.map((filter) => (
+                  <Card 
+                    key={filter.id}
+                    className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
+                      selectedFilter === filter.id ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20' : ''
+                    }`}
+                    onClick={() => applyFilter(filter.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{filter.emoji}</span>
+                        <h3 className="font-semibold text-sm">{filter.name}</h3>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">
+                        {filter.description}
+                      </p>
+                      {selectedFilter === filter.id && (
+                        <Badge className="mt-2 bg-purple-500">
+                          <Palette className="w-3 h-3 mr-1" />
+                          Applied
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex gap-4 justify-center">
+                <Button onClick={downloadImage} className="bg-green-500 hover:bg-green-600">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Vintage Photo
+                </Button>
+                <Button onClick={resetCapture} variant="outline">
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Take New Photo
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <canvas ref={canvasRef} className="hidden" />
+        </CardContent>
+      </Card>
     </div>
   );
 }
