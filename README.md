@@ -7,8 +7,7 @@
 ## What is this Project?
 This project started as a fun experiment, but as i got more and more invested it became a **project** for me:
 
-The project is a **Note taking app** but is not all.
-##It offers a lot more:
+The project is a **Note taking app** but is not all, it offers a lot more:
 
 - Has 12+ fun & exciting AI features to choose from.
 
