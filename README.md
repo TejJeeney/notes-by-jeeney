@@ -1,8 +1,16 @@
-# Welcome to your Lovable project
+# Welcome to my Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/ebc3a685-0203-4db1-9b1b-79a359e6d7e4
+
+## What is this Project?
+This project started as a fun experiment, but as i got more and more invested it became a **project** for me:
+
+The project is a **Note taking app** but is not all.
+##It offers a lot more:
+
+- Has 12+ fun & exciting AI features to choose from.
 
 ## How can I edit this code?
 
@@ -19,6 +27,8 @@ Changes made via Lovable will be committed automatically to this repo.
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Setting this (my notes app)
 
 Follow these steps:
 
@@ -59,6 +69,7 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Gemini API Key Intergration
 
 ## How can I deploy this project?
 
