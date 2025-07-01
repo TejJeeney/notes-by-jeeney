@@ -70,6 +70,7 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 - Gemini API Key Intergration
+- Supabase 
 
 ## How can I deploy this project?
 
