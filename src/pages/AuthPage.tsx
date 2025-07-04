@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, Eye, EyeOff, Sparkles, BookOpen, PenTool } from 'lucide-react';
+import { Loader2, Mail, Lock, Eye, EyeOff, Sparkles, BookOpen, PenTool, Stars, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -81,133 +81,144 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-rose-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Enhanced animated background with glassmorphism */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-4 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob hover:scale-110 transition-transform duration-500"></div>
-        <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 hover:scale-110 transition-transform duration-500"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 hover:scale-110 transition-transform duration-500"></div>
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse hover:opacity-80 transition-opacity duration-300"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-cyan-400/30 to-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-purple-400/30 to-pink-500/30 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-gradient-to-r from-emerald-400/20 to-teal-500/20 rounded-full blur-2xl animate-bounce"></div>
+        
+        {/* Floating glass orbs */}
+        <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 animate-float"></div>
+        <div className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-white/5 backdrop-blur-lg rounded-full border border-white/10 animate-float animation-delay-1000"></div>
       </div>
 
-      {/* Enhanced floating icons with hover effects */}
+      {/* Floating magical elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <BookOpen className="absolute top-20 left-10 w-8 h-8 text-purple-400 opacity-60 animate-float hover:opacity-100 hover:scale-125 transition-all duration-300" />
-        <PenTool className="absolute top-32 right-20 w-6 h-6 text-indigo-400 opacity-60 animate-float animation-delay-1000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
-        <Sparkles className="absolute bottom-32 left-16 w-7 h-7 text-pink-400 opacity-60 animate-float animation-delay-2000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
-        <Mail className="absolute bottom-20 right-16 w-6 h-6 text-purple-400 opacity-60 animate-float animation-delay-3000 hover:opacity-100 hover:scale-125 transition-all duration-300" />
-        <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-gradient-to-r from-red-400 to-yellow-400 rounded-full opacity-70 animate-bounce"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-70 animate-ping"></div>
+        <Sparkles className="absolute top-32 left-16 w-6 h-6 text-cyan-300/60 animate-pulse" />
+        <Stars className="absolute top-1/4 right-20 w-8 h-8 text-purple-300/60 animate-spin" style={{ animationDuration: '8s' }} />
+        <Zap className="absolute bottom-32 left-20 w-5 h-5 text-pink-300/60 animate-bounce" />
+        <BookOpen className="absolute bottom-20 right-16 w-7 h-7 text-blue-300/60 animate-float" />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4 group">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg group-hover:from-purple-600 group-hover:to-indigo-600 transition-all duration-300 group-hover:scale-110">
-              <BookOpen className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
+      {/* Main glass card */}
+      <Card className="w-full max-w-md relative z-10 bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-700 hover:scale-105 hover:bg-white/15">
+        <CardHeader className="space-y-1 text-center pb-6">
+          <div className="flex items-center justify-center space-x-3 mb-6 group">
+            <div className="p-3 bg-gradient-to-r from-cyan-500/80 to-purple-500/80 backdrop-blur-lg rounded-2xl group-hover:from-cyan-400 group-hover:to-purple-400 transition-all duration-500 group-hover:scale-110 border border-white/30">
+              <PenTool className="w-8 h-8 text-white group-hover:rotate-12 transition-transform duration-500" />
             </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-indigo-700 transition-all duration-300">
-              PawNotes
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent hover:from-cyan-100 hover:to-purple-100 transition-all duration-500">
+              FunPaw
             </CardTitle>
           </div>
-          <CardDescription className="text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-300">
-            {isSignUp ? 'Create your account to get started' : 'Welcome back! Sign in to your account'}
+          <CardDescription className="text-white/80 text-lg hover:text-white/90 transition-colors duration-300">
+            {isSignUp ? 'Join the magical AI experience' : 'Welcome back to the future'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Label htmlFor="email" className="text-white/90 font-medium">Email</Label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-hover:text-purple-500 transition-colors duration-300" />
+                <Mail className="absolute left-4 top-4 h-5 w-5 text-white/60 group-hover:text-cyan-300 transition-colors duration-300" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                  className="pl-12 h-12 bg-white/10 backdrop-blur-lg border border-white/30 text-white placeholder:text-white/50 focus:border-cyan-400/50 focus:bg-white/15 hover:bg-white/15 transition-all duration-300 rounded-xl"
                   disabled={loading}
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <Label htmlFor="password" className="text-white/90 font-medium">Password</Label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-hover:text-purple-500 transition-colors duration-300" />
+                <Lock className="absolute left-4 top-4 h-5 w-5 text-white/60 group-hover:text-purple-300 transition-colors duration-300" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-9 pr-9 bg-white/50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                  className="pl-12 pr-12 h-12 bg-white/10 backdrop-blur-lg border border-white/30 text-white placeholder:text-white/50 focus:border-purple-400/50 focus:bg-white/15 hover:bg-white/15 transition-all duration-300 rounded-xl"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 hover:scale-110"
+                  className="absolute right-4 top-4 text-white/60 hover:text-white transition-all duration-300 hover:scale-110"
                   disabled={loading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 animate-shake">
-                <AlertDescription className="text-red-600 dark:text-red-400">
+              <Alert className="border-red-400/30 bg-red-500/10 backdrop-blur-lg animate-shake">
+                <AlertDescription className="text-red-200">
                   {error}
                 </AlertDescription>
               </Alert>
             )}
 
+            {/* Glass Button */}
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-2.5 transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95"
+              className="w-full h-12 bg-gradient-to-r from-cyan-500/80 to-purple-500/80 hover:from-cyan-400 hover:to-purple-400 text-white font-semibold backdrop-blur-lg border border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/25 active:scale-95 rounded-xl"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  {isSignUp ? 'Creating Magic...' : 'Entering Portal...'}
                 </>
               ) : (
-                isSignUp ? 'Create Account' : 'Sign In'
+                <>
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  {isSignUp ? 'Create Account' : 'Sign In'}
+                </>
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="text-center">
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
               }}
-              className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-all duration-300 hover:scale-105 hover:underline"
+              className="text-white/80 hover:text-white font-medium transition-all duration-300 hover:scale-105 relative group"
               disabled={loading}
             >
-              {isSignUp 
-                ? 'Already have an account? Sign in' 
-                : "Don't have an account? Sign up"
-              }
+              <span className="relative z-10">
+                {isSignUp 
+                  ? 'Already have an account? Sign in' 
+                  : "Don't have an account? Sign up"
+                }
+              </span>
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -m-2"></div>
             </button>
           </div>
 
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-300">
-            <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
-              🔒 Your data is protected with enterprise-grade security
+          <div className="p-4 bg-blue-500/10 backdrop-blur-lg rounded-xl border border-blue-400/30 hover:bg-blue-500/15 transition-colors duration-300">
+            <p className="text-sm text-blue-200 text-center flex items-center justify-center gap-2">
+              <Lock className="w-4 h-4" />
+              Your data is protected with future-grade security
             </p>
           </div>
 
           {/* Made with love by JEENEY */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-center">
+            <p className="text-sm text-white/60">
               Made with love by{' '}
-              <span className="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent font-bold animate-pulse hover:animate-bounce transition-all duration-300">
+              <span className="bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent font-bold animate-pulse hover:animate-bounce transition-all duration-300">
                 JEENEY
               </span>
             </p>
