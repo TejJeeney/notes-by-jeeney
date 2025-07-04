@@ -183,14 +183,14 @@ export function ModernWelcome() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-slate-800 dark:text-slate-100 mb-2 sm:mb-4 tracking-tight">
             Welcome to{' '}
             <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:shadow-2xl hover:drop-shadow-[0_0_20px_rgba(139,69,255,0.3)] transition-all duration-500 cursor-pointer">
-              PawNotes
+              FunPaw
             </span>
           </h1>
           
           <div className="mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-3xl mx-auto px-2 sm:px-4">
             <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4">
               <strong className="text-slate-800 dark:text-slate-100">
-                Because your brain is tired, your notes are chaotic, and AI is the only thing holding it all together.
+                This is majorly a fun AI space with an additional feature to create Notes and all.
               </strong>
             </p>
             <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mb-4">
