@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Plus, LogOut, Settings, Download, Upload, Filter, Trash2, FileText, HelpCircle, Edit3, Pin } from 'lucide-react';
+import { Search, Plus, LogOut, Settings, Download, Upload, Filter, Trash2, FileText, HelpCircle, Edit3, Pin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
@@ -10,6 +10,7 @@ import { useNotes } from '@/hooks/useNotes';
 import { ThemeToggleButton } from './ThemeToggleButton';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ModernAppSidebarProps {
   selectedNote?: any;
@@ -23,6 +24,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
   const [showFooter, setShowFooter] = useState(false);
   const { signOut } = useAuth();
   const { notes, createNote, deleteNote, searchNotes, exportNotes, importNotes } = useNotes();
+  const isMobile = useIsMobile();
 
   const filteredNotes = searchNotes(searchQuery).filter(note => 
     showPinnedOnly ? note.is_pinned : true
@@ -64,14 +66,43 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
     return date.toLocaleDateString();
   };
 
+  // Mobile-specific handlers
+  const handleToggleSidebar = () => {
+    if (isMobile) {
+      setIsExpanded(!isExpanded);
+    }
+  };
+
   return (
-    <div 
-      className={`group relative transition-all duration-300 ease-in-out ${
-        isExpanded ? 'w-72' : 'w-16'
-      } hover:w-72`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-    >
+    <>
+      {/* Mobile Menu Button - Fixed position overlay */}
+      {isMobile && (
+        <Button
+          onClick={handleToggleSidebar}
+          className="fixed top-4 left-4 z-50 bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/20 shadow-2xl hover:bg-white/20 dark:hover:bg-slate-700/20 transition-all duration-300"
+          size="sm"
+        >
+          <Menu className="w-4 h-4" />
+        </Button>
+      )}
+
+      {/* Mobile Overlay */}
+      {isMobile && isExpanded && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-all duration-300"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
+
+      <div 
+        className={`${isMobile ? 'fixed' : 'relative'} ${isMobile ? 'z-50' : 'group'} transition-all duration-300 ease-in-out ${
+          isMobile 
+            ? `${isExpanded ? 'w-80' : 'w-0 overflow-hidden'} h-full` 
+            : `${isExpanded ? 'w-72' : 'w-16'} hover:w-72`
+        }`}
+        onMouseEnter={() => !isMobile && setIsExpanded(true)}
+        onMouseLeave={() => !isMobile && setIsExpanded(false)}
+      >
       <Sidebar className={`h-full bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border-r border-white/20 dark:border-slate-700/20 shadow-2xl transition-all duration-300 ${
         isExpanded ? 'w-72' : 'w-16 group-hover:w-72'
       }`}>
@@ -307,6 +338,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           </Button>
         </div>
       </Sidebar>
-    </div>
+      </div>
+    </>
   );
 }
