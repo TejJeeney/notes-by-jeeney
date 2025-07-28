@@ -441,59 +441,91 @@ export function AIAssistant({ selectedTool, onStickerSuggested }: AIAssistantPro
 
   if (selectedTool === 'roast') {
     return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+      <Card className="w-full max-w-4xl mx-auto relative overflow-hidden animate-scroll-reveal bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/60 dark:border-red-800/60 backdrop-blur-lg">
+        {/* Animated fire particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-4 right-4 text-red-500 animate-bounce">🔥</div>
+          <div className="absolute bottom-4 left-4 text-orange-500 animate-pulse animation-delay-1000">💥</div>
+          <div className="absolute top-1/2 left-1/4 text-red-400 animate-ping animation-delay-2000">🌶️</div>
+        </div>
+        
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent">
+            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 animate-pulse" />
             Dark Roast Mode (Savage Rewrite)
           </CardTitle>
+          <CardDescription className="text-red-600/80 dark:text-red-400/80 font-medium">
+            ⚠️ Prepare for verbal destruction! This mode holds no mercy!
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="🔥 Enter your note to get brutally roasted..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base"
-          />
+        <CardContent className="space-y-4 relative z-10">
+          <div className="relative group">
+            <Textarea
+              placeholder="🔥 Enter your note to get brutally roasted... (We warned you!)"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-base bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-red-200/60 dark:border-red-800/60 focus:border-red-400 dark:focus:border-red-600 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-red-500/20"
+            />
+            {prompt && (
+              <div className="absolute top-2 right-2 text-red-500 animate-pulse">💀</div>
+            )}
+          </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Roast Level</label>
+            <div className="space-y-2">
+              <label className="block text-xs sm:text-sm font-medium mb-2 text-red-700 dark:text-red-400">Roast Level 🌶️</label>
               <Select value={roastLevel} onValueChange={setRoastLevel}>
-                <SelectTrigger className="text-xs sm:text-sm">
+                <SelectTrigger className="text-xs sm:text-sm bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-red-200/60 dark:border-red-800/60 hover:border-red-400 dark:hover:border-red-600 transition-all duration-300">
                   <SelectValue placeholder="Select roast level" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mild">😏 Mild Roast - Light jabs, passive-aggressive</SelectItem>
-                  <SelectItem value="gordon">🔥 Gordon Ramsay Mode - Insanely harsh chef fury</SelectItem>
-                  <SelectItem value="tejas">💀 Tejas-VE - Darkly funny, edgy, no filters</SelectItem>
+                <SelectContent className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg">
+                  <SelectItem value="mild" className="hover:bg-red-50 dark:hover:bg-red-900/30">😏 Mild Roast - Light jabs, passive-aggressive</SelectItem>
+                  <SelectItem value="gordon" className="hover:bg-red-50 dark:hover:bg-red-900/30">🔥 Gordon Ramsay Mode - Insanely harsh chef fury</SelectItem>
+                  <SelectItem value="tejas" className="hover:bg-red-50 dark:hover:bg-red-900/30">💀 Tejas-VE - Darkly funny, edgy, no filters</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div>
-              <label className="block text-xs sm:text-sm font-medium mb-2">Language</label>
+            <div className="space-y-2">
+              <label className="block text-xs sm:text-sm font-medium mb-2 text-red-700 dark:text-red-400">Language 🌍</label>
               <Select value={roastLanguage} onValueChange={setRoastLanguage}>
-                <SelectTrigger className="text-xs sm:text-sm">
+                <SelectTrigger className="text-xs sm:text-sm bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-red-200/60 dark:border-red-800/60 hover:border-red-400 dark:hover:border-red-600 transition-all duration-300">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">🇺🇸 English</SelectItem>
-                  <SelectItem value="hindi">🇮🇳 Hindi</SelectItem>
+                <SelectContent className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg">
+                  <SelectItem value="english" className="hover:bg-red-50 dark:hover:bg-red-900/30">🇺🇸 English</SelectItem>
+                  <SelectItem value="hindi" className="hover:bg-red-50 dark:hover:bg-red-900/30">🇮🇳 Hindi</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           
-          <Button onClick={generateRoast} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-sm sm:text-base">
-            {loading ? 'Preparing roast...' : '🔥 Roast This Like Your Worst Enemy\'s Diary'}
+          <Button 
+            onClick={generateRoast} 
+            disabled={loading} 
+            className="w-full bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white font-bold text-sm sm:text-base py-3 shadow-lg hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300 hover:scale-105 border border-red-400/50"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Preparing roast...
+              </div>
+            ) : (
+              '🔥 Roast This Like Your Worst Enemy\'s Diary'
+            )}
           </Button>
           
           {result && (
-            <Card>
+            <Card className="animate-scroll-reveal bg-gradient-to-br from-red-100/80 to-orange-100/80 dark:from-red-900/30 dark:to-orange-900/30 border-red-300/60 dark:border-red-700/60 backdrop-blur-lg">
               <CardContent className="pt-4">
-                <p className="text-xs sm:text-sm font-medium">Your Savage Roast:</p>
-                <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-red-50 dark:bg-red-900/20 p-3 rounded max-h-64 overflow-y-auto">{result}</p>
+                <p className="text-xs sm:text-sm font-bold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
+                  <Flame className="w-4 h-4 animate-pulse" />
+                  Your Savage Roast:
+                </p>
+                <div className="relative">
+                  <p className="text-xs sm:text-sm mt-2 whitespace-pre-wrap bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-4 rounded-lg max-h-64 overflow-y-auto border border-red-200/60 dark:border-red-800/60 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300">{result}</p>
+                  <div className="absolute -top-2 -right-2 text-red-500 animate-bounce">💀</div>
+                </div>
               </CardContent>
             </Card>
           )}
