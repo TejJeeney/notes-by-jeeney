@@ -6,8 +6,11 @@ import { useNotes } from '@/hooks/useNotes';
 import { useState } from 'react';
 import { AIAssistant } from './ai/AIAssistant';
 import { CameraFilters } from './ai/CameraFilters';
+import { useScrollReveal, useStaggeredReveal } from '@/hooks/useScrollReveal';
 
 export function ModernWelcome() {
+  const heroSection = useScrollReveal({ delay: 100 });
+  const featuresSection = useStaggeredReveal(4, 150);
   const { createNote } = useNotes();
   const [selectedAITool, setSelectedAITool] = useState<string | null>(null);
 

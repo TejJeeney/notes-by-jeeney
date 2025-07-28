@@ -95,20 +95,20 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
       )}
 
       <div 
-        className={`${isMobile ? 'fixed' : 'relative'} ${isMobile ? 'z-50' : 'group'} transition-all duration-300 ease-in-out ${
+        className={`${isMobile ? 'fixed top-0 left-0' : 'relative'} ${isMobile ? 'z-50' : 'group'} transition-all duration-300 ease-in-out ${
           isMobile 
-            ? `${isExpanded ? 'w-80' : 'w-0 overflow-hidden'} h-full` 
+            ? `${isExpanded ? 'w-80 translate-x-0' : 'w-80 -translate-x-full'} h-screen` 
             : `${isExpanded ? 'w-72' : 'w-16'} hover:w-72`
         }`}
         onMouseEnter={() => !isMobile && setIsExpanded(true)}
         onMouseLeave={() => !isMobile && setIsExpanded(false)}
       >
       <Sidebar className={`h-full bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border-r border-white/20 dark:border-slate-700/20 shadow-2xl transition-all duration-300 ${
-        isExpanded ? 'w-72' : 'w-16 group-hover:w-72'
+        isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16 group-hover:w-72'
       }`}>
         
         <SidebarHeader className={`p-3 border-b border-white/10 dark:border-slate-700/20 transition-all duration-300 ${
-          isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         }`}>
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent hover:from-purple-500 hover:to-cyan-400 transition-all duration-300">
@@ -195,18 +195,19 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </div>
 
         <SidebarContent className={`p-3 overflow-y-auto transition-all duration-300 ${
-          isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         }`}>
           <div className="space-y-2">
-            {filteredNotes.map((note) => (
+            {filteredNotes.map((note, index) => (
               <div
                 key={note.id}
                 onClick={() => onSelectNote?.(note)}
-                className={`p-3 rounded-xl cursor-pointer transition-all duration-300 hover:scale-102 group/note backdrop-blur-lg border ${
+                className={`p-3 rounded-xl cursor-pointer transition-all duration-300 hover:scale-102 group/note backdrop-blur-lg border animate-scroll-reveal ${
                   selectedNote?.id === note.id
                     ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-cyan-300/30 shadow-lg shadow-cyan-500/10 scale-102'
                     : 'hover:bg-white/10 dark:hover:bg-slate-700/10 border-white/10 hover:border-white/20 dark:hover:border-slate-600/20 hover:shadow-lg'
                 }`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1 text-sm">
@@ -269,10 +270,10 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </SidebarContent>
 
         {/* Collapsible Footer */}
-        <div 
-          className={`relative transition-all duration-300 ${
-            isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
+          <div 
+            className={`relative transition-all duration-300 ${
+              isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
           onMouseEnter={() => setShowFooter(true)}
           onMouseLeave={() => setShowFooter(false)}
         >

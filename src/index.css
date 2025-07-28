@@ -112,6 +112,14 @@
     animation: shake 0.5s ease-in-out;
   }
 
+  .animate-scroll-reveal {
+    animation: scroll-reveal 0.6s ease-out both;
+  }
+
+  .animate-scroll-reveal-delayed {
+    animation: scroll-reveal 0.8s ease-out 0.2s both;
+  }
+
   .animation-delay-1000 {
     animation-delay: 1s;
   }
@@ -147,5 +155,16 @@
   }
   75% {
     transform: translateX(5px);
+  }
+}
+
+@keyframes scroll-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
