@@ -18,13 +18,13 @@ interface ModernAppSidebarProps {
 }
 
 export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSidebarProps) {
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!isMobile);
   const [showFooter, setShowFooter] = useState(false);
   const { signOut } = useAuth();
   const { notes, createNote, deleteNote, searchNotes, exportNotes, importNotes } = useNotes();
-  const isMobile = useIsMobile();
 
   const filteredNotes = searchNotes(searchQuery).filter(note => 
     showPinnedOnly ? note.is_pinned : true
@@ -75,39 +75,42 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <>
-      {/* Mobile Menu Button - Better visibility and positioning */}
+      {/* Mobile Menu Button */}
       {isMobile && (
         <Button
           onClick={handleToggleSidebar}
-          className="fixed top-4 left-4 z-[100] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 shadow-xl hover:shadow-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 hover:scale-110"
+          className="fixed top-4 left-4 z-[200] bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 shadow-2xl hover:shadow-3xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 hover:scale-110 rounded-lg"
           size="sm"
         >
-          <Menu className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+          <Menu className="w-5 h-5 text-slate-800 dark:text-slate-200" />
         </Button>
       )}
 
       {/* Mobile Overlay */}
       {isMobile && isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
+          className="fixed inset-0 bg-black/70 z-[150] backdrop-blur-sm"
           onClick={() => setIsExpanded(false)}
         />
       )}
 
-      {/* Sidebar Container - Fixed positioning to prevent interference */}
-      <div 
-        className={`fixed top-0 left-0 h-full z-[95] transition-all duration-300 ease-in-out ${
+      {/* Sidebar Container - Completely separate positioning */}
+      <aside 
+        className={`${
           isMobile 
-            ? `${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80` 
-            : `${isExpanded ? 'w-72' : 'w-16'}`
+            ? `fixed top-0 left-0 z-[160] h-full transition-transform duration-300 ease-out ${
+                isExpanded ? 'translate-x-0' : '-translate-x-full'
+              } w-80` 
+            : `fixed top-0 left-0 z-[50] h-full transition-all duration-300 ease-out ${
+                isExpanded ? 'w-72' : 'w-16'
+              }`
         }`}
         onMouseEnter={() => !isMobile && setIsExpanded(true)}
         onMouseLeave={() => !isMobile && setIsExpanded(false)}
-        style={{ pointerEvents: isMobile && !isExpanded ? 'none' : 'auto' }}
       >
-      <Sidebar className={`h-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-700/80 shadow-2xl transition-all duration-300 ${
-        isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16'
-      }`}>
+        <Sidebar className={`h-full bg-white/98 dark:bg-slate-800/98 backdrop-blur-xl border-r border-slate-200 dark:border-slate-700 shadow-2xl transition-all duration-300 ${
+          isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16'
+        }`}>
         
         <SidebarHeader className={`p-3 border-b border-white/10 dark:border-slate-700/20 transition-all duration-300 ${
           isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
@@ -341,7 +344,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
           </Button>
         </div>
       </Sidebar>
-      </div>
+      </aside>
     </>
   );
 }

@@ -261,7 +261,26 @@ export function DrawingCanvas({ onSave, onClose }: DrawingCanvasProps) {
 
   const handleSave = () => {
     if (!canvasRef.current) return;
-    const imageData = canvasRef.current.toDataURL();
+    
+    // Convert canvas to blob and create a PNG file
+    canvasRef.current.toBlob((blob) => {
+      if (blob) {
+        // Create a download link for PNG file
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Drawing saved as PNG file!');
+      }
+    }, 'image/png', 1.0);
+    
+    // Still call the onSave callback for any other functionality
+    const imageData = canvasRef.current.toDataURL('image/png', 1.0);
     onSave(imageData, title);
   };
 
