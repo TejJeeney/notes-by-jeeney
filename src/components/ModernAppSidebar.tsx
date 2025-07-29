@@ -75,29 +75,30 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <>
-      {/* Mobile Menu Button - Fixed position overlay */}
+      {/* Mobile Menu Button */}
       {isMobile && (
         <Button
           onClick={handleToggleSidebar}
-          className="fixed top-4 left-4 z-50 bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/20 shadow-2xl hover:bg-white/20 dark:hover:bg-slate-700/20 transition-all duration-300"
+          className="fixed top-4 left-4 z-50 bg-sidebar-background/90 dark:bg-sidebar-background/90 backdrop-blur-sm border border-sidebar-border shadow-lg hover:bg-sidebar-accent transition-all duration-200"
           size="sm"
         >
           <Menu className="w-4 h-4" />
         </Button>
       )}
 
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay - Only show when expanded */}
       {isMobile && isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-all duration-300"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsExpanded(false)}
         />
       )}
 
+      {/* Sidebar Container */}
       <div 
-        className={`${isMobile ? 'fixed top-0 left-0' : 'relative'} ${isMobile ? 'z-50' : 'group'} transition-all duration-300 ease-in-out ${
+        className={`${isMobile ? 'fixed top-0 left-0 z-50' : 'relative group'} transition-transform duration-300 ease-in-out ${
           isMobile 
-            ? `${isExpanded ? 'w-80 translate-x-0' : 'w-80 -translate-x-full'} h-screen` 
+            ? `${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80 h-screen` 
             : `${isExpanded ? 'w-72' : 'w-16'} hover:w-72`
         }`}
         onMouseEnter={() => !isMobile && setIsExpanded(true)}
