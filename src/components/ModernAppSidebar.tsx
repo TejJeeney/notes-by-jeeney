@@ -75,37 +75,37 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Always visible */}
       {isMobile && (
         <Button
           onClick={handleToggleSidebar}
-          className="fixed top-4 left-4 z-50 bg-sidebar-background/90 dark:bg-sidebar-background/90 backdrop-blur-sm border border-sidebar-border shadow-lg hover:bg-sidebar-accent transition-all duration-200"
+          className="fixed top-4 left-4 z-[60] bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 hover:scale-105"
           size="sm"
         >
-          <Menu className="w-4 h-4" />
+          <Menu className="w-4 h-4 text-slate-700 dark:text-slate-300" />
         </Button>
       )}
 
       {/* Mobile Overlay - Only show when expanded */}
       {isMobile && isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-black/50 z-[55]"
           onClick={() => setIsExpanded(false)}
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - Fixed positioning to prevent hover interference */}
       <div 
-        className={`${isMobile ? 'fixed top-0 left-0 z-50' : 'relative group'} transition-transform duration-300 ease-in-out ${
+        className={`${
           isMobile 
-            ? `${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80 h-screen` 
-            : `${isExpanded ? 'w-72' : 'w-16'} hover:w-72`
+            ? `fixed top-0 left-0 z-[56] transition-transform duration-300 ease-in-out ${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80 h-screen` 
+            : `fixed top-0 left-0 z-[45] transition-all duration-300 ease-in-out ${isExpanded ? 'w-72' : 'w-16'}`
         }`}
         onMouseEnter={() => !isMobile && setIsExpanded(true)}
         onMouseLeave={() => !isMobile && setIsExpanded(false)}
       >
       <Sidebar className={`h-full bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border-r border-white/20 dark:border-slate-700/20 shadow-2xl transition-all duration-300 ${
-        isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16 group-hover:w-72'
+        isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16'
       }`}>
         
         <SidebarHeader className={`p-3 border-b border-white/10 dark:border-slate-700/20 transition-all duration-300 ${
@@ -174,7 +174,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
         {/* Collapsed state - only icons */}
         <div className={`absolute top-3 left-3 transition-all duration-300 ${
-          isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100 group-hover:opacity-0 group-hover:pointer-events-none'
+          isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}>
           <div className="flex flex-col gap-2">
             <Button
@@ -196,7 +196,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         </div>
 
         <SidebarContent className={`p-3 overflow-y-auto transition-all duration-300 ${
-          isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          isMobile || isExpanded ? 'opacity-100' : 'opacity-0'
         }`}>
           <div className="space-y-2">
             {filteredNotes.map((note, index) => (
@@ -273,7 +273,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
         {/* Collapsible Footer */}
           <div 
             className={`relative transition-all duration-300 ${
-              isMobile || isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              isMobile || isExpanded ? 'opacity-100' : 'opacity-0'
             }`}
           onMouseEnter={() => setShowFooter(true)}
           onMouseLeave={() => setShowFooter(false)}
@@ -328,7 +328,7 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
         {/* Collapsed footer toggle */}
         <div className={`absolute bottom-3 left-3 transition-all duration-300 ${
-          isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100 group-hover:opacity-0 group-hover:pointer-events-none'
+          isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}>
           <Button
             variant="outline"
