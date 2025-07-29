@@ -18,12 +18,12 @@ export function ModernNotesView() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen relative">
       <ModernAppSidebar 
         selectedNote={selectedNote}
         onSelectNote={setSelectedNote}
       />
-      <div className="flex-1">
+      <div className={`flex-1 transition-all duration-300 ml-16`}>
         {selectedNote ? (
           <ModernNoteEditor
             note={selectedNote}

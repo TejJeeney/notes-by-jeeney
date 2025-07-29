@@ -220,3 +220,19 @@
     background-position: 0% 50%;
   }
 }
+
+/* Prevent sidebar hover interference with other interactive elements */
+.drawing-canvas,
+.drawing-toolbar,
+canvas {
+  position: relative;
+  z-index: 50;
+}
+
+/* Mobile-specific sidebar improvements */
+@media (max-width: 768px) {
+  .mobile-sidebar-trigger {
+    pointer-events: auto !important;
+    z-index: 100 !important;
+  }
+}

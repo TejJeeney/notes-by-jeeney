@@ -75,36 +75,37 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
 
   return (
     <>
-      {/* Mobile Menu Button - Always visible */}
+      {/* Mobile Menu Button - Better visibility and positioning */}
       {isMobile && (
         <Button
           onClick={handleToggleSidebar}
-          className="fixed top-4 left-4 z-[60] bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 hover:scale-105"
+          className="fixed top-4 left-4 z-[100] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 shadow-xl hover:shadow-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 hover:scale-110"
           size="sm"
         >
           <Menu className="w-4 h-4 text-slate-700 dark:text-slate-300" />
         </Button>
       )}
 
-      {/* Mobile Overlay - Only show when expanded */}
+      {/* Mobile Overlay */}
       {isMobile && isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/50 z-[55]"
+          className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
           onClick={() => setIsExpanded(false)}
         />
       )}
 
-      {/* Sidebar Container - Fixed positioning to prevent hover interference */}
+      {/* Sidebar Container - Fixed positioning to prevent interference */}
       <div 
-        className={`${
+        className={`fixed top-0 left-0 h-full z-[95] transition-all duration-300 ease-in-out ${
           isMobile 
-            ? `fixed top-0 left-0 z-[56] transition-transform duration-300 ease-in-out ${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80 h-screen` 
-            : `fixed top-0 left-0 z-[45] transition-all duration-300 ease-in-out ${isExpanded ? 'w-72' : 'w-16'}`
+            ? `${isExpanded ? 'translate-x-0' : '-translate-x-full'} w-80` 
+            : `${isExpanded ? 'w-72' : 'w-16'}`
         }`}
         onMouseEnter={() => !isMobile && setIsExpanded(true)}
         onMouseLeave={() => !isMobile && setIsExpanded(false)}
+        style={{ pointerEvents: isMobile && !isExpanded ? 'none' : 'auto' }}
       >
-      <Sidebar className={`h-full bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border-r border-white/20 dark:border-slate-700/20 shadow-2xl transition-all duration-300 ${
+      <Sidebar className={`h-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-700/80 shadow-2xl transition-all duration-300 ${
         isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16'
       }`}>
         
