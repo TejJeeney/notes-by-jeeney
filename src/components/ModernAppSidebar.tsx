@@ -105,9 +105,17 @@ export function ModernAppSidebar({ selectedNote, onSelectNote }: ModernAppSideba
                 isExpanded ? 'w-72' : 'w-16'
               }`
         }`}
-        onMouseEnter={() => !isMobile && setIsExpanded(true)}
-        onMouseLeave={() => !isMobile && setIsExpanded(false)}
       >
+        {/* Desktop Toggle Button */}
+        {!isMobile && (
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="absolute top-4 right-[-12px] z-[60] bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 shadow-2xl hover:shadow-3xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 hover:scale-110 rounded-full w-6 h-6 p-0"
+            size="sm"
+          >
+            <Menu className="w-3 h-3 text-slate-800 dark:text-slate-200" />
+          </Button>
+        )}
         <Sidebar className={`h-full bg-white/98 dark:bg-slate-800/98 backdrop-blur-xl border-r border-slate-200 dark:border-slate-700 shadow-2xl transition-all duration-300 ${
           isMobile ? 'w-80' : isExpanded ? 'w-72' : 'w-16'
         }`}>
